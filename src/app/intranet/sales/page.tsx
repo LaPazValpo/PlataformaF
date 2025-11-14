@@ -14,7 +14,6 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProposalForm from '@/components/intranet/proposals/ProposalForm';
-import ProposalDetails from '@/components/intranet/proposals/ProposalDetails';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -312,8 +311,6 @@ export default function SalesPage() {
   const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
   const { data: proposals, loading: loadingProposals } = useCollection<Proposal>('proposals');
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
-  const [selectedProposal, setSelectedProposal] = React.useState<Proposal | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
 
   const loading = loadingProspects || loadingProposals || loadingSales;
 
@@ -326,10 +323,9 @@ export default function SalesPage() {
     return <SalesSkeleton />;
   }
 
-  const openDetailsDialog = (proposal: Proposal) => {
-    setSelectedProposal(proposal);
-    setIsDetailsOpen(true);
-  }
+  const openProposalLink = (proposalId: string) => {
+    window.open(`/proposal/${proposalId}`, '_blank');
+  };
 
   const handleSendWhatsApp = (proposal: Proposal) => {
     if (!proposal.contactNumber) {
@@ -395,7 +391,7 @@ export default function SalesPage() {
                                 <td className="py-2 px-4 text-right">{p.totalAmount ? formatCurrency(p.totalAmount) : '-'}</td>
                                 <td className="py-2 px-4 text-center">
                                     <div className='flex items-center justify-center'>
-                                        <Button variant="ghost" size="icon" onClick={() => openDetailsDialog(p)} title="Ver Detalles">
+                                        <Button variant="ghost" size="icon" onClick={() => openProposalLink(p.id)} title="Ver Propuesta Pública">
                                             <Eye className="h-4 w-4" />
                                         </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleSendWhatsApp(p)} title="Enviar por WhatsApp">
@@ -452,15 +448,6 @@ export default function SalesPage() {
         </section>
 
       </div>
-      
-      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Detalles de la Propuesta</DialogTitle>
-          </DialogHeader>
-          {selectedProposal && <ProposalDetails proposalId={selectedProposal.id} />}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
