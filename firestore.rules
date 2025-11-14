@@ -15,6 +15,7 @@ service cloud.firestore {
     }
     
     // Obtiene el rol del usuario desde su documento en la colección 'users'.
+    // Es CRÍTICO que la regla de lectura para /users/{userId} permita esta operación.
     function getRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
@@ -36,7 +37,8 @@ service cloud.firestore {
       // Un Administrador puede leer cualquier perfil.
       allow read: if (isSignedIn() && isOwner(userId)) || isRole('Administrador');
       
-      // Solo el dueño del perfil o un Administrador pueden escribir.
+      // Cualquiera puede crear un perfil al registrarse.
+      // El dueño del perfil o un Administrador pueden escribir.
       allow write: if isOwner(userId) || isRole('Administrador');
     }
     

@@ -19,6 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Por favor, introduce un email válido.' }),
@@ -53,14 +55,26 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
+      // Asignar rol de Administrador si es el superusuario
       if (values.email === 'lapazdecristovalpo@gmail.com') {
         const userRef = doc(db, 'users', user.uid);
-        await setDoc(userRef, {
+        const userData = {
           role: 'Administrador',
           email: user.email,
           name: 'Admin Principal',
           id: user.uid,
-        }, { merge: true });
+        };
+
+        // El setDoc no se bloquea, pero captura errores de permisos específicos
+        setDoc(userRef, userData, { merge: true })
+          .catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: userRef.path,
+                operation: 'update', // o 'create'
+                requestResourceData: userData,
+             });
+             errorEmitter.emit('permission-error', permissionError);
+          });
       }
 
       toast({
@@ -68,6 +82,7 @@ export default function LoginPage() {
         description: 'Redirigiendo al dashboard...',
       });
       router.push('/intranet/dashboard');
+
     } catch (error: any) {
       console.error("Firebase Auth Error:", error);
       let description = 'Ocurrió un error inesperado.';
@@ -79,11 +94,14 @@ export default function LoginPage() {
             description = 'El correo electrónico o la contraseña son incorrectos.';
             break;
           case 'auth/network-request-failed':
-            description = 'Error de red. Por favor, revisa tu conexión a internet y la configuración de la API Key.';
+            description = 'Error de red. Por favor, revisa tu conexión a internet.';
             break;
           case 'auth/too-many-requests':
             description = 'Demasiados intentos fallidos. Por favor, intenta de nuevo más tarde.';
             break;
+          case 'auth/permission-denied':
+             description = 'Permiso denegado por la configuración de Firebase. Revisa las restricciones de tu API Key en la consola de Google Cloud.';
+             break;
           default:
             description = `Error: ${error.message}`;
         }

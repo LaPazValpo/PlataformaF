@@ -64,8 +64,8 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
         setEmail('');
     };
 
-    const handleSubmit = async () => {
-        if (!clientName || !contactNumber) return;
+    const handleSubmit = () => {
+        if (!clientName || !contactNumber || !db) return;
 
         setIsLoading(true);
 
