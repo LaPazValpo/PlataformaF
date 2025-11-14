@@ -13,46 +13,45 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let unsubscribeProfile: () => void = () => {};
+
     const unsubscribeAuth = onAuthStateChanged(auth, (authUser) => {
       setUser(authUser);
-      if (!authUser) {
-        // Si no hay usuario de autenticación, no hay perfil y la carga ha terminado.
+      
+      // Cancel any previous profile subscription
+      unsubscribeProfile();
+
+      if (authUser && db) {
+        setLoading(true); // Start loading profile for the new user
+        const userDocRef = doc(db, 'users', authUser.uid);
+        unsubscribeProfile = onSnapshot(
+          userDocRef,
+          (snapshot) => {
+            if (snapshot.exists()) {
+              setUserProfile({ id: snapshot.id, ...snapshot.data() } as UserProfile);
+            } else {
+              setUserProfile(null);
+            }
+            setLoading(false); // Loading is done when profile is fetched
+          },
+          (error: FirestoreError) => {
+            console.error("Error fetching user profile:", error);
+            setUserProfile(null);
+            setLoading(false); // Also done on error
+          }
+        );
+      } else {
+        // No authUser, so no profile to fetch. Loading is complete.
         setUserProfile(null);
         setLoading(false);
       }
     });
 
-    return () => unsubscribeAuth();
-  }, [auth]);
-
-  useEffect(() => {
-    if (user && db) {
-      // Si hay un usuario autenticado, escuchamos cambios en su documento de perfil.
-      const userDocRef = doc(db, 'users', user.uid);
-      const unsubscribeProfile = onSnapshot(
-        userDocRef,
-        (snapshot) => {
-          if (snapshot.exists()) {
-            setUserProfile({ id: snapshot.id, ...snapshot.data() } as UserProfile);
-          } else {
-            // Esto puede ocurrir brevemente después de un nuevo inicio de sesión,
-            // antes de que se cree el documento de perfil.
-            setUserProfile(null);
-          }
-          setLoading(false); // La carga termina cuando obtenemos una respuesta del perfil.
-        },
-        (error: FirestoreError) => {
-          console.error("Error fetching user profile:", error);
-          setUserProfile(null);
-          setLoading(false);
-        }
-      );
-      return () => unsubscribeProfile();
-    } else {
-        // Si no hay usuario, aseguramos que el estado de carga sea falso.
-        setLoading(false);
-    }
-  }, [user, db]);
+    return () => {
+        unsubscribeAuth();
+        unsubscribeProfile();
+    };
+  }, [auth, db]);
 
   return { user, userProfile, loading };
 }

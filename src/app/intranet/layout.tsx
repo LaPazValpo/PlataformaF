@@ -136,26 +136,26 @@ function IntranetLayoutSkeleton() {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, userProfile, loading } = useUser();
   const router = useRouter();
-
+  
   useEffect(() => {
-    // No tomar ninguna decisión mientras los datos se están cargando.
-    if (loading) {
-      return;
-    }
-
-    // Una vez que la carga ha finalizado, si no hay usuario autenticado 
-    // o el perfil del usuario no existe o no tiene un rol, redirigir a login.
-    if (!user || !userProfile?.role) {
-      router.replace('/login');
+    // Solo toma una decisión cuando la carga haya finalizado
+    if (!loading) {
+      // Si después de cargar, no hay usuario o el usuario no tiene un rol,
+      // entonces redirige al login.
+      if (!user || !userProfile?.role) {
+        router.replace('/login');
+      }
     }
   }, [user, userProfile, loading, router]);
   
-  // Mientras se cargan los datos de Auth y Firestore, muestra el esqueleto.
+  // Mientras el hook `useUser` está cargando la autenticación Y el perfil de Firestore,
+  // muestra el esqueleto de carga.
   if (loading) {
     return <IntranetLayoutSkeleton />;
   }
   
-  // Si la carga finalizó y el usuario tiene un perfil con rol, muestra el contenido.
+  // Si la carga finalizó y tenemos un usuario con un perfil y rol válidos,
+  // muestra el contenido de la intranet.
   if (user && userProfile?.role) {
     return (
       <SidebarProvider>
