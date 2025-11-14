@@ -26,6 +26,10 @@ service cloud.firestore {
         return isSignedIn() && getRole() == role;
     }
     
+    function isOneOfRoles(roles) {
+        return isSignedIn() && getRole() in roles;
+    }
+    
     // -- Reglas por Colección --
 
     match /users/{userId} {
@@ -42,20 +46,20 @@ service cloud.firestore {
     
     match /prospects/{prospectId} {
       allow create: if true;
-      allow read, update, delete: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+      allow read, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /proposals/{proposalId} {
-      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sales/{saleId} {
-      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /clients/{clientId} {
       allow create: if true;
-      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sellers/{sellerId} {
