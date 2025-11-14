@@ -138,24 +138,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Solo toma una decisión cuando la carga inicial ha terminado.
-    if (!loading) {
-      // Si después de cargar, no hay usuario o el perfil del usuario no tiene un rol,
-      // entonces el usuario no está autorizado para estar en la intranet.
-      if (!user || !userProfile?.role) {
-        router.replace('/login');
-      }
+    // No tomar ninguna decisión mientras los datos se están cargando.
+    if (loading) {
+      return;
+    }
+
+    // Una vez que la carga ha finalizado, si no hay usuario autenticado 
+    // o el perfil del usuario no existe o no tiene un rol, redirigir a login.
+    if (!user || !userProfile?.role) {
+      router.replace('/login');
     }
   }, [user, userProfile, loading, router]);
   
-  // Muestra el esqueleto de carga mientras se verifica la autenticación y se obtiene el perfil.
-  // Si el usuario está autenticado pero su perfil aún no se ha cargado (userProfile es null),
-  // la condición 'loading' se encargará de mostrar el esqueleto.
+  // Mientras se cargan los datos de Auth y Firestore, muestra el esqueleto.
   if (loading) {
     return <IntranetLayoutSkeleton />;
   }
   
-  // Si la carga ha finalizado y el usuario tiene un perfil con rol, puede acceder al contenido.
+  // Si la carga finalizó y el usuario tiene un perfil con rol, muestra el contenido.
   if (user && userProfile?.role) {
     return (
       <SidebarProvider>
@@ -170,7 +170,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Si por alguna razón la carga finaliza pero el usuario no está autorizado,
-  // se muestra el esqueleto mientras useEffect hace la redirección.
+  // Si la carga ha finalizado pero el usuario no está autorizado (el useEffect se encargará
+  // de la redirección), muestra el esqueleto para evitar un parpadeo de contenido no deseado.
   return <IntranetLayoutSkeleton />;
 }
