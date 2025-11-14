@@ -86,8 +86,12 @@ export default function ProposalForm({
     if (!db) return;
     setLoading(true);
 
-    const payload: Omit<Proposal, 'id'> = {
-      prospectId: prospectId ?? initialData?.prospectId ?? null, // Usar prospectId directamente
+    const now = new Date();
+    const newProposalId = mode === 'create' ? `PROP-${now.getTime()}` : proposalId;
+
+    const payload: Omit<Proposal, 'id'> & { id: string } = {
+      id: newProposalId!,
+      prospectId: prospectId ?? initialData?.prospectId ?? null,
       clientName: form.clientName.trim(),
       services: form.servicesCsv
         .split(',')
@@ -103,15 +107,15 @@ export default function ProposalForm({
       notes: form.notes?.trim() || '',
       createdAt:
         mode === 'create'
-          ? new Date().toISOString()
-          : initialData?.createdAt ?? new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+          ? now.toISOString()
+          : initialData?.createdAt ?? now.toISOString(),
+      updatedAt: now.toISOString(),
     };
 
     try {
       if (mode === 'create') {
-        const collectionRef = collection(db, 'proposals');
-        await addDoc(collectionRef, payload);
+        const docRef = doc(db, 'proposals', newProposalId!);
+        await updateDoc(docRef, payload);
         toast({ title: 'Propuesta creada con éxito' });
         onSuccess?.();
       } else {
@@ -125,7 +129,7 @@ export default function ProposalForm({
       const isPermissionError = e.code === 'permission-denied';
       if (isPermissionError) {
         const permissionError = new FirestorePermissionError({
-          path: mode === 'create' ? 'proposals' : `proposals/${proposalId}`,
+          path: mode === 'create' ? `proposals/${newProposalId}` : `proposals/${proposalId}`,
           operation: mode === 'create' ? 'create' : 'update',
           requestResourceData: payload,
         });

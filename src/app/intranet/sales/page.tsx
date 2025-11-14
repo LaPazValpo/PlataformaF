@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye } from 'lucide-react';
+import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle } from 'lucide-react';
 import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -100,8 +100,9 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
               createdAt: now.toISOString(),
               updatedAt: now.toISOString(),
           };
-          const salesCol = doc(db, 'sales', `SALE-${now.getTime()}`);
-          batch.set(salesCol, newSale);
+          const saleId = `SALE-${now.getTime()}`;
+          const salesCol = doc(db, 'sales', saleId);
+          batch.set(salesCol, {...newSale, id: saleId});
       }
 
       setIsUpdating(true);
@@ -157,7 +158,7 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
             </Button>
           )}
 
-          {prospect.status === 'Contactado' && !hasProposal && (
+          {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && !hasProposal && (
              <Dialog open={isCreateProposalOpen} onOpenChange={setIsCreateProposalOpen}>
                 <DialogTrigger asChild>
                     <Button className="w-full">
@@ -267,6 +268,21 @@ export default function SalesPage() {
     setSelectedProposal(proposal);
     setIsDetailsOpen(true);
   }
+
+  const handleSendWhatsApp = (proposal: Proposal) => {
+    if (!proposal.contactNumber) {
+        useToast().toast({
+            variant: "destructive",
+            title: "Número de contacto no disponible",
+            description: "La propuesta no tiene un número de contacto para enviar por WhatsApp.",
+        });
+        return;
+    }
+    const cleanPhoneNumber = proposal.contactNumber.replace(/[^0-9]/g, '');
+    const proposalUrl = `${window.location.origin}/proposal/${proposal.id}`;
+    const message = encodeURIComponent(`Hola ${proposal.clientName},\n\nTe envío la propuesta de servicios funerarios que conversamos. Puedes revisarla en el siguiente enlace:\n\n${proposalUrl}\n\nQuedo a tu disposición para cualquier duda.\n\nSaludos,\n${proposal.sellerName}`);
+    window.open(`https://wa.me/${cleanPhoneNumber}?text=${message}`, '_blank');
+  };
   
   return (
     <div className="w-full">
@@ -316,9 +332,14 @@ export default function SalesPage() {
                                 <td className="py-2 px-4"><Badge variant={p.status === 'Propuesta Aceptada' ? 'default' : 'secondary'}>{p.status}</Badge></td>
                                 <td className="py-2 px-4 text-right">{p.totalAmount ? formatCurrency(p.totalAmount) : '-'}</td>
                                 <td className="py-2 px-4 text-center">
-                                    <Button variant="ghost" size="icon" onClick={() => openDetailsDialog(p)}>
-                                        <Eye className="h-4 w-4" />
-                                    </Button>
+                                    <div className='flex items-center justify-center'>
+                                        <Button variant="ghost" size="icon" onClick={() => openDetailsDialog(p)} title="Ver Detalles">
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleSendWhatsApp(p)} title="Enviar por WhatsApp">
+                                            <MessageCircle className="h-4 w-4 text-green-500" />
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
