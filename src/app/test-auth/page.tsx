@@ -18,6 +18,10 @@ export default function TestAuthPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!auth) {
+        setError("Error: El servicio de autenticación de Firebase no está disponible. Revisa la inicialización.");
+        return;
+    }
     setIsLoading(true);
     setError(null);
     setSuccessUser(null);
@@ -39,7 +43,7 @@ export default function TestAuthPage() {
         <CardHeader>
           <CardTitle>Página de Prueba de Autenticación</CardTitle>
           <CardDescription>
-            Esta página prueba únicamente la función de `signInWithEmailAndPassword` de Firebase.
+            Esta página prueba únicamente la función de `signInWithEmailAndPassword` de Firebase para aislar problemas de conexión.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -49,7 +53,6 @@ export default function TestAuthPage() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
               readOnly
               className="bg-muted/50"
             />
@@ -62,6 +65,7 @@ export default function TestAuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Introduce la contraseña"
+              autoFocus
             />
           </div>
           <Button onClick={handleLogin} disabled={isLoading || !password} className="w-full">
