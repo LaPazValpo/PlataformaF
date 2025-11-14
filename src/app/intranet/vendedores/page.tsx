@@ -6,6 +6,7 @@ import {
   ChevronDown,
   MoreHorizontal,
   Edit,
+  Plus,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -200,7 +201,7 @@ function VendedoresPageSkeleton() {
             />
             <div className="flex items-center py-4">
                 <Skeleton className="h-10 w-full max-w-sm" />
-                <Skeleton className="h-10 w-24 ml-auto" />
+                <Skeleton className="h-10 w-36 ml-auto" />
             </div>
             <div className="rounded-md border">
                 <Table>
@@ -235,6 +236,7 @@ export default function VendedoresPage() {
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
   const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
   
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
@@ -253,7 +255,7 @@ export default function VendedoresPage() {
 
       return {
         ...seller,
-        sales: sellerSales.length, // Update sales count from actual sales
+        sales: sellerSales.length,
         totalSalesValue,
         commissionEarned,
       };
@@ -297,33 +299,51 @@ export default function VendedoresPage() {
           onChange={event => table.getColumn('name')?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columnas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={value => column.toggleVisibility(!!value)}
-                >
-                  {column.id === 'name' ? 'Vendedor' :
-                   column.id === 'sales' ? 'Ventas (Unidades)' :
-                   column.id === 'totalSalesValue' ? 'Ventas (Valor)' :
-                   column.id === 'conversionRate' ? 'Tasa de Conversión' :
-                   column.id === 'commissionEarned' ? 'Comisión Ganada' :
-                   column.id === 'status' ? 'Estado' : column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="ml-auto flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Columnas <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter(column => column.getCanHide())
+                  .map(column => (
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={value => column.toggleVisibility(!!value)}
+                    >
+                      {column.id === 'name' ? 'Vendedor' :
+                      column.id === 'sales' ? 'Ventas (Unidades)' :
+                      column.id === 'totalSalesValue' ? 'Ventas (Valor)' :
+                      column.id === 'conversionRate' ? 'Tasa de Conversión' :
+                      column.id === 'commissionEarned' ? 'Comisión Ganada' :
+                      column.id === 'status' ? 'Estado' : column.id}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            {isAdmin && (
+                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <Plus className="mr-2"/>
+                            Crear Vendedor
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Nuevo Vendedor</DialogTitle>
+                        </DialogHeader>
+                        <SellerForm mode="create" onSuccess={() => setIsCreateOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+            )}
+        </div>
       </div>
       <div className="rounded-md border">
         <Table>

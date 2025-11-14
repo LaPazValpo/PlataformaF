@@ -1,7 +1,7 @@
 'use client';
 
 import { useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, collection } from 'firebase/firestore';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,35 +43,54 @@ export default function SellerForm({
     setForm((p) => ({ ...p, [key]: value }));
 
   const handleSubmit = async () => {
-    if (!db || (mode === 'edit' && !sellerId)) return;
+    if (!db) return;
+    if (mode === 'edit' && !sellerId) return;
+
     setLoading(true);
 
-    const payload = {
-        ...form,
-        commission: Number(form.commission),
-        updatedAt: new Date().toISOString(),
-    };
-
+    const now = new Date().toISOString();
+    
     try {
-        if (mode === 'edit') {
+        if (mode === 'create') {
+            const newId = `VEND-${Date.now()}`;
+            const newSeller: Seller = {
+                id: newId,
+                ...form,
+                commission: Number(form.commission),
+                sales: 0,
+                conversionRate: 0,
+                avatar: '',
+                user: '', // These should be handled by a more secure auth flow
+                pass: '', // These should be handled by a more secure auth flow
+                createdAt: now,
+                updatedAt: now,
+            };
+            const docRef = doc(db, 'sellers', newId);
+            await setDoc(docRef, newSeller);
+            toast({ title: 'Vendedor creado con éxito' });
+        } else { // edit mode
+            const payload = {
+                ...form,
+                commission: Number(form.commission),
+                updatedAt: now,
+            };
             const docRef = doc(db, 'sellers', sellerId!);
             await updateDoc(docRef, payload);
             toast({ title: 'Vendedor actualizado con éxito' });
         }
-        // Create mode can be added here if needed
-      onSuccess?.();
+        onSuccess?.();
     } catch (e: any) {
       console.error('Error submitting form: ', e);
        const permissionError = new FirestorePermissionError({
-          path: `sellers/${sellerId}`,
-          operation: 'update',
-          requestResourceData: payload,
+          path: mode === 'create' ? `sellers/NEW_SELLER` : `sellers/${sellerId}`,
+          operation: mode === 'create' ? 'create' : 'update',
+          requestResourceData: form,
         });
       errorEmitter.emit('permission-error', permissionError);
       toast({
         variant: 'destructive',
         title: 'Error de Permiso',
-        description: 'No tienes permisos para editar este vendedor.',
+        description: 'No tienes permisos para realizar esta acción.',
       });
     } finally {
       setLoading(false);
@@ -123,10 +142,10 @@ export default function SellerForm({
             </Select>
         </div>
       </div>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={onSuccess}>Cancelar</Button>
         <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Guardando...' : 'Guardar Cambios'}
+          {loading ? 'Guardando...' : (mode === 'create' ? 'Crear Vendedor' : 'Guardar Cambios')}
         </Button>
       </div>
     </div>
