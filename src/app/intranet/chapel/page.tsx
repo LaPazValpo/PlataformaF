@@ -4,8 +4,8 @@ import * as React from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-import { virtualTombs } from '@/lib/data';
+import { useCollection } from '@/firebase';
+import type { VirtualTomb } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { PageHeader } from '@/components/common/page-header';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,12 +19,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Separator } from '@/components/ui/separator';
 import { Quote } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-function TombDialog({ tombId }: { tombId: string }) {
-  const tomb = virtualTombs.find(t => t.id === tombId);
-
+function TombDialog({ tomb }: { tomb: VirtualTomb }) {
   if (!tomb) {
     return null;
   }
@@ -99,7 +97,38 @@ function TombDialog({ tombId }: { tombId: string }) {
   );
 }
 
+function ChapelSkeleton() {
+    return (
+        <div className="flex flex-col gap-8">
+            <PageHeader
+                title="Capilla Virtual"
+                description="Un espacio para recordar y honrar a nuestros seres queridos."
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(3)].map((_, i) => (
+                    <Card key={i}>
+                        <CardContent className="p-0">
+                            <Skeleton className="h-48 w-full" />
+                            <div className="p-4 space-y-2">
+                                <Skeleton className="h-5 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-10 w-full mt-2" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+    )
+}
+
 export default function ChapelPage() {
+  const { data: virtualTombs, loading } = useCollection<VirtualTomb>('virtualTombs');
+  
+  if (loading) {
+    return <ChapelSkeleton />;
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -128,7 +157,7 @@ export default function ChapelPage() {
                     {format(new Date(tomb.birthDate), 'yyyy')} - {format(new Date(tomb.passingDate), 'yyyy')}
                   </p>
                   <div className="mt-4">
-                     <TombDialog tombId={tomb.id} />
+                     <TombDialog tomb={tomb} />
                   </div>
                 </div>
               </CardContent>

@@ -1,4 +1,7 @@
-import { inventory } from '@/lib/data';
+'use client';
+
+import type { InventoryItem } from '@/lib/types';
+import { useCollection } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function getStockStatus(quantity: number): { text: string; variant: 'default' | 'secondary' | 'destructive' } {
   if (quantity <= 0) {
@@ -21,7 +25,54 @@ function getStockStatus(quantity: number): { text: string; variant: 'default' | 
   return { text: 'En Stock', variant: 'default' };
 }
 
+function InventorySkeleton() {
+    return (
+        <div className="flex flex-col gap-8">
+            <PageHeader
+                title="Inventario"
+                description="Monitorea los niveles de stock de productos y servicios."
+            />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Items de Inventario</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Producto</TableHead>
+                                <TableHead>Categoría</TableHead>
+                                <TableHead className="text-right">Cantidad</TableHead>
+                                <TableHead className="text-center">Estado</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {[...Array(4)].map((_, i) => (
+                                <TableRow key={i}>
+                                    <TableCell>
+                                        <Skeleton className="h-5 w-32" />
+                                        <Skeleton className="h-4 w-48 mt-1" />
+                                    </TableCell>
+                                    <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                                    <TableCell className="text-right"><Skeleton className="h-5 w-10 ml-auto" /></TableCell>
+                                    <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto" /></TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
 export default function InventoryPage() {
+  const { data: inventory, loading } = useCollection<InventoryItem>('inventory');
+  
+  if (loading) {
+    return <InventorySkeleton />;
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
