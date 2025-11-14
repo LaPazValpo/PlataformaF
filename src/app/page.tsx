@@ -35,6 +35,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useFirestore } from '@/firebase';
+import { addDoc, collection } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -47,6 +51,7 @@ const iconMap: { [key: string]: React.ElementType } = {
 
 const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) => {
     const { toast } = useToast();
+    const db = useFirestore();
     const [clientName, setClientName] = useState('');
     const [contactNumber, setContactNumber] = useState('');
     const [email, setEmail] = useState('');
@@ -64,27 +69,37 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
 
         setIsLoading(true);
 
-        try {
-            // Here you would normally call a server action or API endpoint
-            console.log('Submitting prospect:', { clientName, contactNumber, email });
-            
+        const newProspect = {
+            prospectId: `PROS-${Date.now()}`,
+            clientName,
+            contactNumber,
+            email,
+            sellerId: null,
+            sellerName: 'Sin Asignar',
+            date: new Date().toISOString(),
+        };
+
+        const prospectsCol = collection(db, 'prospects');
+        addDoc(prospectsCol, newProspect)
+          .then(() => {
             toast({
                 title: 'Solicitud Recibida con Éxito',
                 description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
             });
-            
             setIsOpen(false);
             resetForm();
-
-        } catch (error) {
-             toast({
-                title: 'Error al Enviar la Solicitud',
-                description: 'Hubo un problema al registrar su solicitud. Por favor, intente de nuevo más tarde.',
-                variant: 'destructive',
-            });
-        } finally {
+          })
+          .catch((serverError) => {
+             const permissionError = new FirestorePermissionError({
+                path: prospectsCol.path,
+                operation: 'create',
+                requestResourceData: newProspect,
+             });
+             errorEmitter.emit('permission-error', permissionError);
+          })
+          .finally(() => {
             setIsLoading(false);
-        }
+          });
     }
 
     return (
