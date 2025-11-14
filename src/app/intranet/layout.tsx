@@ -3,36 +3,30 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Book,
-  Contact,
-  Home,
-  LayoutDashboard,
-  PanelLeft,
-  Package,
-  Users,
-  HandCoins,
-  Warehouse,
-  Sparkles,
   Church,
+  HandCoins,
+  LayoutDashboard,
+  Package,
+  PanelLeft,
+  Sparkles,
+  Warehouse,
 } from 'lucide-react';
 import {
-  SidebarProvider,
   Sidebar,
-  SidebarHeader,
   SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
+  SidebarHeader,
   SidebarInset,
-  useSidebar,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { useUser } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -93,7 +87,7 @@ function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) => (
-             <SidebarMenuItem key={item.href} asChild>
+             <SidebarMenuItem key={item.href}>
                 <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
@@ -130,41 +124,51 @@ function AppSidebar() {
 
 function IntranetLayoutSkeleton() {
     return (
-        <div className="flex min-h-screen">
-            <div className="w-16 md:w-64 bg-gray-100 dark:bg-gray-800 p-4">
-                <Skeleton className="h-8 w-32 mb-8" />
-                <div className="space-y-4">
-                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
-                </div>
-            </div>
-            <div className="flex-1 p-8">
-                <Skeleton className="h-full w-full" />
+        <div className="flex h-screen w-full items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <PazFinalLogo />
+                <Skeleton className="h-4 w-48" />
             </div>
         </div>
     )
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useUser();
+  const { user, userProfile, loading } = useUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
+    // Si la carga ha terminado
+    if (!loading) {
+      // Si no hay usuario autenticado, redirige al login
+      if (!user) {
+        router.replace('/login');
+      } 
+      // Si hay un usuario pero no se ha cargado su perfil con un rol válido,
+      // podría estar en proceso de creación. No hacemos nada y esperamos
+      // a que el hook se actualice. Si después de un tiempo sigue sin rol,
+      // es un estado anómalo, pero por ahora evitamos bucles de redirección.
+      // Si hay un perfil pero no tiene rol, lo tratamos como no autorizado.
+      else if (user && !userProfile?.role) {
+         // Opcional: podríamos redirigir a una página de "no autorizado" o al login.
+         // Por ahora, el skeleton de carga gestionará la espera.
+      }
     }
-  }, [user, loading, router]);
-
-  if (loading || !user) {
+  }, [user, userProfile, loading, router]);
+  
+  // Muestra el esqueleto de carga mientras se verifica el estado de autenticación y el perfil de usuario.
+  // O si el usuario está autenticado pero su perfil (con rol) aún no está disponible.
+  if (loading || !user || !userProfile?.role) {
     return <IntranetLayoutSkeleton />;
   }
   
+  // Si todo está correcto, muestra el layout de la intranet.
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:justify-end">
             <SidebarTrigger className="md:hidden"/>
-            {/* Can add more header items here */}
         </header>
         <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
       </SidebarInset>

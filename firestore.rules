@@ -13,8 +13,10 @@ service cloud.firestore {
     function isOwner(userId) {
         return request.auth.uid == userId;
     }
-    
+
     // Devuelve el rol del usuario desde su documento en la colección 'users'.
+    // IMPORTANTE: Esta función solo se puede usar de forma fiable en reglas "get", "write", "update", "delete".
+    // NO FUNCIONARÁ de forma fiable en reglas "list".
     function getRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
@@ -23,77 +25,70 @@ service cloud.firestore {
     function isRole(role) {
         return isSignedIn() && getRole() == role;
     }
-
-    // Devuelve true si el usuario tiene uno de los roles en la lista.
-    function isOneOfRoles(roles) {
-        return isSignedIn() && getRole() in roles;
-    }
     
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      allow get: if isOwner(userId) || isRole('Administrador');
+      // CUALQUIER usuario autenticado puede leer SU PROPIO documento de perfil.
+      // Esto es crucial para que la aplicación pueda verificar el rol del usuario después del login.
+      allow get: if isOwner(userId);
+      
+      // Solo un Administrador puede ver la lista de todos los usuarios.
       allow list: if isRole('Administrador');
-      // Permite al dueño del perfil escribir en su propio documento.
-      // Esto es necesario para que el usuario pueda establecer su rol al iniciar sesión por primera vez.
+      
+      // CUALQUIER usuario autenticado puede crear o actualizar SU PROPIO documento.
+      // Esto es necesario para la asignación inicial de rol después del login.
       allow write: if isOwner(userId);
     }
     
+    // Para las colecciones de la intranet, ahora permitimos la lectura si el usuario tiene
+    // el rol adecuado. La aplicación se encargará de no llamar a estas colecciones
+    // hasta que se haya verificado el rol del usuario.
     match /prospects/{prospectId} {
-      // Cualquiera puede crear un prospecto (para el formulario de la landing).
       allow create: if true;
-      // Solo roles autorizados pueden leer y modificar prospectos.
-      allow get, list, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow read, update, delete: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
     }
     
     match /proposals/{proposalId} {
-      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
     }
     
     match /sales/{saleId} {
-      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
     }
     
     match /clients/{clientId} {
-      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
     }
     
     match /sellers/{sellerId} {
-       // Solo roles autorizados pueden ver la información de los vendedores.
-      allow get, list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      // Solo el administrador puede crear, actualizar o eliminar vendedores.
+      allow read: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
       allow write: if isRole('Administrador');
     }
     
     // --- Colecciones Públicas y de Contenido ---
 
     match /servicePacks/{packId} {
-      // Cualquiera puede ver los paquetes de servicios.
       allow read: if true;
-      // Solo el Administrador puede modificarlos.
       allow write: if isRole('Administrador');
     }
     
     match /virtualChapelPlans/{planId} {
-      // Cualquiera puede ver los planes de capilla virtual.
       allow read: if true;
       allow write: if isRole('Administrador');
     }
     
     match /individualServices/{serviceId} {
-      // Cualquiera puede ver los servicios individuales.
       allow read: if true;
       allow write: if isRole('Administrador');
     }
     
     match /virtualTombs/{tombId} {
-      // Cualquiera puede ver las tumbas virtuales.
       allow read: if true;
       allow write: if isRole('Administrador');
     }
 
     match /testimonials/{testimonialId} {
-       // Cualquiera puede leer los testimonios.
       allow read: if true;
       allow write: if isRole('Administrador');
     }
@@ -101,7 +96,6 @@ service cloud.firestore {
     // --- Colecciones solo para Administradores ---
     
     match /inventory/{itemId} {
-      // Solo el administrador puede gestionar el inventario.
       allow read, write: if isRole('Administrador');
     }
   }

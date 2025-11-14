@@ -1,4 +1,4 @@
-export interface User {
+export interface UserProfile {
   id: string;
   role: 'Administrador' | 'Vendedor' | 'Vendedor Senior';
   email: string;
