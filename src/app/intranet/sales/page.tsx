@@ -7,13 +7,14 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { doc, updateDoc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProposalForm from '@/components/intranet/proposals/ProposalForm';
+import ProposalDetails from '@/components/intranet/proposals/ProposalDetails';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -248,6 +249,8 @@ export default function SalesPage() {
   const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
   const { data: proposals, loading: loadingProposals } = useCollection<Proposal>('proposals');
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
+  const [selectedProposal, setSelectedProposal] = React.useState<Proposal | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
 
   const loading = loadingProspects || loadingProposals || loadingSales;
 
@@ -258,6 +261,11 @@ export default function SalesPage() {
   
   if (loading) {
     return <SalesSkeleton />;
+  }
+
+  const openDetailsDialog = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    setIsDetailsOpen(true);
   }
   
   return (
@@ -296,6 +304,7 @@ export default function SalesPage() {
                         <th className="py-2 px-4 text-left">Vendedor</th>
                         <th className="py-2 px-4 text-left">Estado</th>
                         <th className="py-2 px-4 text-right">Monto</th>
+                        <th className="py-2 px-4 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -306,10 +315,15 @@ export default function SalesPage() {
                                 <td className="py-2 px-4">{p.sellerName}</td>
                                 <td className="py-2 px-4"><Badge variant={p.status === 'Propuesta Aceptada' ? 'default' : 'secondary'}>{p.status}</Badge></td>
                                 <td className="py-2 px-4 text-right">{p.totalAmount ? formatCurrency(p.totalAmount) : '-'}</td>
+                                <td className="py-2 px-4 text-center">
+                                    <Button variant="ghost" size="icon" onClick={() => openDetailsDialog(p)}>
+                                        <Eye className="h-4 w-4" />
+                                    </Button>
+                                </td>
                             </tr>
                         ))}
                         {proposals.length === 0 && (
-                            <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No hay propuestas.</td></tr>
+                            <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No hay propuestas.</td></tr>
                         )}
                     </tbody>
                 </table>
@@ -355,6 +369,15 @@ export default function SalesPage() {
         </section>
 
       </div>
+      
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalles de la Propuesta</DialogTitle>
+          </DialogHeader>
+          {selectedProposal && <ProposalDetails proposalId={selectedProposal.id} />}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
