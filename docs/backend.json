@@ -27,7 +27,7 @@
         "sellerId": { "type": "string" },
         "sellerName": { "type": "string" },
         "date": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["Nuevo", "Contactado", "En Seguimiento", "No Calificado", "Venta Ganada", "Venta Perdida"] },
+        "status": { "type": "string", "enum": ["Nuevo", "Contactado", "En Seguimiento", "Propuesta Enviada", "No Calificado", "Venta Ganada", "Venta Perdida"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },

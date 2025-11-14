@@ -1,7 +1,7 @@
 'use client';
 
 import { useFirestore, useUser, useCollection } from '@/firebase';
-import { addDoc, collection, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, setDoc, writeBatch } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,8 +136,22 @@ export default function ProposalForm({
     };
 
     try {
-      const docRef = doc(db, 'proposals', newProposalId!);
-      await setDoc(docRef, payload); // Use setDoc for both create and edit to ensure consistency
+      const batch = writeBatch(db);
+
+      // 1. Create or update the proposal
+      const proposalRef = doc(db, 'proposals', newProposalId!);
+      batch.set(proposalRef, payload);
+
+      // 2. If creating, update the prospect's status
+      if (mode === 'create' && prospectId) {
+        const prospectRef = doc(db, 'prospects', prospectId);
+        batch.update(prospectRef, {
+          status: 'Propuesta Enviada',
+          updatedAt: now.toISOString()
+        });
+      }
+
+      await batch.commit();
       
       toast({ title: `Propuesta ${mode === 'create' ? 'creada' : 'actualizada'} con éxito` });
       

@@ -16,7 +16,7 @@ export interface Prospect {
   sellerId: string | null;
   sellerName: string;
   date: string;
-  status: 'Nuevo' | 'Contactado' | 'En Seguimiento' | 'No Calificado' | 'Venta Ganada' | 'Venta Perdida';
+  status: 'Nuevo' | 'Contactado' | 'En Seguimiento' | 'Propuesta Enviada' | 'No Calificado' | 'Venta Ganada' | 'Venta Perdida';
   createdAt: string;
   updatedAt: string;
 }
