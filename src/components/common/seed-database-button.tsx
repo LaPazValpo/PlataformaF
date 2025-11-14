@@ -5,7 +5,7 @@ import { useFirestore } from '@/firebase';
 import { collection, writeBatch, doc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { sales, prospects, sellers } from '@/lib/data';
+import { sales, prospects, sellers, proposals, inventory, servicePacks, virtualChapelPlans, individualServices, virtualTombs, testimonials } from '@/lib/data';
 import { Database } from 'lucide-react';
 
 export function SeedDatabaseButton() {
@@ -14,6 +14,14 @@ export function SeedDatabaseButton() {
   const db = useFirestore();
 
   const handleSeed = async () => {
+    if (!db) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'La base de datos no está lista.',
+        });
+        return;
+    }
     setLoading(true);
     toast({
       title: 'Poblando la base de datos...',
@@ -23,25 +31,25 @@ export function SeedDatabaseButton() {
     try {
       const batch = writeBatch(db);
 
-      // Seed Sales
-      const salesCol = collection(db, 'sales');
-      sales.forEach(sale => {
-        const docRef = doc(salesCol, sale.id);
-        batch.set(docRef, sale);
-      });
+      const collectionsToSeed = [
+        { data: sales, name: 'sales' },
+        { data: prospects, name: 'prospects' },
+        { data: sellers, name: 'sellers' },
+        { data: proposals, name: 'proposals' },
+        { data: inventory, name: 'inventory' },
+        { data: servicePacks, name: 'servicePacks' },
+        { data: virtualChapelPlans, name: 'virtualChapelPlans' },
+        { data: individualServices, name: 'individualServices' },
+        { data: virtualTombs, name: 'virtualTombs' },
+        { data: testimonials, name: 'testimonials' },
+      ];
 
-      // Seed Prospects
-      const prospectsCol = collection(db, 'prospects');
-      prospects.forEach(prospect => {
-        const docRef = doc(prospectsCol, prospect.id);
-        batch.set(docRef, prospect);
-      });
-      
-      // Seed Sellers
-      const sellersCol = collection(db, 'sellers');
-      sellers.forEach(seller => {
-        const docRef = doc(sellersCol, seller.id);
-        batch.set(docRef, seller);
+      collectionsToSeed.forEach(coll => {
+        const collRef = collection(db, coll.name);
+        coll.data.forEach(item => {
+          const docRef = doc(collRef, item.id);
+          batch.set(docRef, item);
+        });
       });
 
       await batch.commit();

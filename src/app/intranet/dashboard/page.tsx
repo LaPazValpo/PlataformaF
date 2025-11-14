@@ -78,10 +78,30 @@ export default function DashboardPage() {
   const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
   const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
 
+  const allDataLoaded = !loadingSales && !loadingProspects && !loadingSellers;
+  const isDataEmpty = allDataLoaded && sales.length === 0 && prospects.length === 0 && sellers.length === 0;
+
   if (loadingSales || loadingProspects || loadingSellers) {
     return <DashboardSkeleton />;
   }
   
+  if (isDataEmpty) {
+    return (
+        <div className="flex flex-col gap-8 items-center justify-center h-[60vh]">
+            <div className="text-center space-y-4">
+                <PageHeader 
+                    title="Bienvenido al Dashboard"
+                    description="Parece que la base de datos está vacía."
+                />
+                <p className="text-muted-foreground">
+                    Haz clic en el botón de abajo para cargar los datos de ejemplo y ver el dashboard en acción.
+                </p>
+                <SeedDatabaseButton />
+            </div>
+        </div>
+    )
+  }
+
   const totalSales = sales.reduce((acc, sale) => acc + sale.totalAmount, 0);
   const totalProspects = prospects.length;
   const conversionRate = totalProspects > 0 ? (sales.length / totalProspects) * 100 : 0;
@@ -107,27 +127,6 @@ export default function DashboardPage() {
   
   const recentSales = sales.slice(-5).reverse();
   
-  const allDataLoaded = !loadingSales && !loadingProspects && !loadingSellers;
-  const isDataEmpty = allDataLoaded && sales.length === 0 && prospects.length === 0 && sellers.length === 0;
-
-  if (isDataEmpty) {
-    return (
-        <div className="flex flex-col gap-8 items-center justify-center h-[60vh]">
-            <div className="text-center space-y-4">
-                <PageHeader 
-                    title="Bienvenido al Dashboard"
-                    description="Parece que la base de datos está vacía."
-                />
-                <p className="text-muted-foreground">
-                    Haz clic en el botón de abajo para cargar los datos de ejemplo y ver el dashboard en acción.
-                </p>
-                <SeedDatabaseButton />
-            </div>
-        </div>
-    )
-  }
-
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
