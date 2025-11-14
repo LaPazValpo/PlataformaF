@@ -225,7 +225,13 @@
     }
   },
   "auth": {
-    "providers": ["password"]
+    "providers": ["password"],
+    "customClaims": {
+      "role": {
+        "type": "string",
+        "enum": ["Administrador", "Vendedor", "Vendedor Senior"]
+      }
+    }
   },
   "firestore": {
     "/users/{userId}": {

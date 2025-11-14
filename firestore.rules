@@ -14,10 +14,9 @@ service cloud.firestore {
         return request.auth.uid == userId;
     }
     
-    // Obtiene el rol del usuario desde su documento en la colección 'users'.
-    // Es CRÍTICO que la regla de lectura para /users/{userId} permita esta operación.
+    // Devuelve el rol del usuario desde el custom claim en su token de autenticación.
     function getRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return request.auth.token.role;
     }
 
     // Devuelve true si el usuario tiene un rol específico.
@@ -33,16 +32,14 @@ service cloud.firestore {
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      // El dueño puede leer su propio perfil.
+      // El dueño puede leer y escribir su propio perfil.
       // Un Administrador puede leer cualquier perfil.
       allow get: if isOwner(userId) || isRole('Administrador');
-      // Lectura de lista solo para administradores.
       allow list: if isRole('Administrador');
       
       // Un usuario autenticado puede crear su propio perfil por primera vez.
-      allow create: if isOwner(userId);
       // El dueño del perfil o un Administrador pueden actualizar.
-      allow update: if isOwner(userId) || isRole('Administrador');
+      allow write: if isOwner(userId) || isRole('Administrador');
     }
     
     match /prospects/{prospectId} {
