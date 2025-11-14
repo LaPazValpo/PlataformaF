@@ -1,7 +1,7 @@
 'use client';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Book,
   Contact,
@@ -31,10 +31,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { useUser } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/intranet/sales', icon: HandCoins, label: 'Ventas' },
+  { href: '/intranet/sales', icon: HandCoins, label: 'Rendimiento' },
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
   { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
@@ -81,7 +83,7 @@ function PazFinalLogo() {
 
 function AppSidebar() {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { user } = useUser();
 
   return (
     <Sidebar collapsible="icon">
@@ -91,20 +93,20 @@ function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <Link href={item.href}>
-                <SidebarMenuButton
-                  isActive={pathname.startsWith(item.href)}
-                  tooltip={{
-                    children: item.label,
-                    side: 'right',
-                    className: 'bg-sidebar-background text-sidebar-foreground',
-                  }}
-                >
-                  <item.icon />
-                  <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
+             <SidebarMenuItem key={item.href}>
+                <Link href={item.href}>
+                  <SidebarMenuButton
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={{
+                      children: item.label,
+                      side: 'right',
+                      className: 'bg-sidebar-background text-sidebar-foreground',
+                    }}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </Link>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -113,12 +115,12 @@ function AppSidebar() {
       <SidebarFooter>
         <div className="flex items-center gap-3 p-2">
           <Avatar className="h-9 w-9">
-            <AvatarImage src="https://picsum.photos/seed/admin/100/100" />
-            <AvatarFallback>A</AvatarFallback>
+            <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/admin/100/100`} />
+            <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col overflow-hidden whitespace-nowrap">
-             <span className="text-sm font-medium text-sidebar-foreground">Admin</span>
-             <span className="text-xs text-sidebar-foreground/70">admin@pazfinal.cl</span>
+             <span className="text-sm font-medium text-sidebar-foreground">{user?.displayName ?? 'Admin'}</span>
+             <span className="text-xs text-sidebar-foreground/70">{user?.email}</span>
           </div>
         </div>
       </SidebarFooter>
@@ -126,7 +128,36 @@ function AppSidebar() {
   );
 }
 
+function IntranetLayoutSkeleton() {
+    return (
+        <div className="flex min-h-screen">
+            <div className="w-16 md:w-64 bg-gray-100 dark:bg-gray-800 p-4">
+                <Skeleton className="h-8 w-32 mb-8" />
+                <div className="space-y-4">
+                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                </div>
+            </div>
+            <div className="flex-1 p-8">
+                <Skeleton className="h-full w-full" />
+            </div>
+        </div>
+    )
+}
+
 export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [user, loading, router]);
+
+  if (loading || !user) {
+    return <IntranetLayoutSkeleton />;
+  }
+  
   return (
     <SidebarProvider>
       <AppSidebar />

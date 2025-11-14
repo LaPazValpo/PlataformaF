@@ -16,6 +16,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth, useFirestore } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Por favor, introduce un email válido.' }),
@@ -25,6 +28,8 @@ const loginFormSchema = z.object({
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const auth = useAuth();
+  const db = useFirestore();
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -35,19 +40,33 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
-    // Simulating login
-    if (values.email && values.password) {
-        toast({
-            title: 'Inicio de Sesión Exitoso',
-            description: 'Redirigiendo al dashboard...',
-        });
-        router.push('/intranet/dashboard');
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Error de autenticación',
-            description: 'Credenciales incorrectas.',
-        });
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
+
+      // If it's the superuser, ensure their role is set in Firestore.
+      if (values.email === 'lapazdecristovalpo@gmail.com') {
+        const userRef = doc(db, 'users', user.uid);
+        await setDoc(userRef, {
+          role: 'Administrador',
+          email: user.email,
+          name: 'Admin Principal',
+          id: user.uid,
+        }, { merge: true });
+      }
+
+      toast({
+        title: 'Inicio de Sesión Exitoso',
+        description: 'Redirigiendo al dashboard...',
+      });
+      router.push('/intranet/dashboard');
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Error de autenticación',
+        description: 'Credenciales incorrectas o el usuario no existe.',
+      });
     }
   };
 
@@ -97,8 +116,8 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full">
-                Acceder
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? 'Accediendo...' : 'Acceder'}
               </Button>
             </form>
           </Form>

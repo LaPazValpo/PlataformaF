@@ -2,80 +2,79 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Función para verificar si el usuario está autenticado
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // Función para verificar el rol del usuario
-    function hasRole(role) {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    function isOwner(userId) {
+        return request.auth.uid == userId;
     }
     
-    // Usuarios
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isRole(role) {
+        return isSignedIn() && getRole() == role;
+    }
+
+    function isOneOfRoles(roles) {
+        return isSignedIn() && getRole() in roles;
+    }
+    
     match /users/{userId} {
       allow read: if isSignedIn();
-      allow write: if isSignedIn() && (request.auth.uid == userId || hasRole('Administrador'));
+      allow write: if isOwner(userId) || isRole('Administrador');
     }
     
-    // Prospectos
     match /prospects/{prospectId} {
-      allow read, write: if true;
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow create: if true; // Allow web form to create prospects
     }
     
-    // Propuestas
     match /proposals/{proposalId} {
-      allow read, write: if true;
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
-    // Ventas
     match /sales/{saleId} {
-      allow read, write: if true;
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
-    // Clientes
     match /clients/{clientId} {
-      allow read, write: if true;
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
-    // Vendedores
     match /sellers/{sellerId} {
-      allow read, write: if true;
+      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
-    // Paquetes de Servicios (público para lectura)
     match /servicePacks/{packId} {
       allow read: if true;
-      allow write: if hasRole('Administrador');
+      allow write: if isRole('Administrador');
     }
     
-    // Planes de Capilla Virtual (público para lectura)
     match /virtualChapelPlans/{planId} {
       allow read: if true;
-      allow write: if hasRole('Administrador');
+      allow write: if isRole('Administrador');
     }
     
-    // Servicios Individuales (público para lectura)
     match /individualServices/{serviceId} {
       allow read: if true;
-      allow write: if hasRole('Administrador');
+      allow write: if isRole('Administrador');
     }
     
-    // Tumbas Virtuales (público para lectura)
     match /virtualTombs/{tombId} {
       allow read: if true;
-      allow write: if hasRole('Administrador');
+      allow write: if isRole('Administrador');
     }
     
-    // Inventario
     match /inventory/{itemId} {
-      allow read, write: if hasRole('Administrador');
+      allow read, write: if isRole('Administrador');
     }
     
-    // Testimonios (público para lectura)
     match /testimonials/{testimonialId} {
       allow read: if true;
-      allow write: if hasRole('Administrador');
+      allow write: if isRole('Administrador');
     }
   }
 }
