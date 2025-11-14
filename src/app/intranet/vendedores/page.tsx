@@ -12,10 +12,12 @@ import {
   DollarSign,
   TrendingUp,
   CircleUser,
+  Trash2,
 } from 'lucide-react';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 import type { Sale, Seller } from '@/lib/types';
-import { useCollection, useUser } from '@/firebase';
+import { useCollection, useUser, useFirestore } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +27,20 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import SellerForm from '@/components/intranet/vendedores/SellerForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 
 type SellerPerformance = Seller & {
@@ -41,9 +57,13 @@ const formatCurrency = (amount: number) => {
 
 
 function SellerProfileModal({ seller, children }: { seller: SellerPerformance, children: React.ReactNode }) {
+    const db = useFirestore();
+    const { toast } = useToast();
     const { userProfile } = useUser();
     const isAdmin = userProfile?.role === 'Administrador';
     const [isFormOpen, setIsFormOpen] = React.useState(false);
+    const [isProfileOpen, setIsProfileOpen] = React.useState(false);
+
 
     const stats = [
         { icon: BarChart, label: "Ventas (Unidades)", value: seller.sales },
@@ -52,8 +72,22 @@ function SellerProfileModal({ seller, children }: { seller: SellerPerformance, c
         { icon: TrendingUp, label: "Comisión Ganada", value: formatCurrency(seller.commissionEarned) },
     ]
 
+    const handleDeleteSeller = async () => {
+        if (!db || !isAdmin) return;
+        const sellerRef = doc(db, 'sellers', seller.id);
+        try {
+            await deleteDoc(sellerRef);
+            toast({ title: 'Vendedor eliminado con éxito' });
+            setIsProfileOpen(false); // Cierra el modal principal
+        } catch (e) {
+             const permissionError = new FirestorePermissionError({ path: sellerRef.path, operation: 'delete' });
+             errorEmitter.emit('permission-error', permissionError);
+             toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
+        }
+    };
+
     return (
-        <Dialog>
+        <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -81,25 +115,47 @@ function SellerProfileModal({ seller, children }: { seller: SellerPerformance, c
                     ))}
                 </div>
                 {isAdmin && (
-                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-                        <DialogTrigger asChild>
-                            <Button>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Editar Vendedor
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Editar Vendedor</DialogTitle>
-                            </DialogHeader>
-                            <SellerForm 
-                              mode="edit" 
-                              sellerId={seller.id} 
-                              initialData={seller}
-                              onSuccess={() => setIsFormOpen(false)}
-                            />
-                        </DialogContent>
-                    </Dialog>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                            <DialogTrigger asChild>
+                                <Button className="flex-1">
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Editar Vendedor
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Editar Vendedor</DialogTitle>
+                                </DialogHeader>
+                                <SellerForm 
+                                  mode="edit" 
+                                  sellerId={seller.id} 
+                                  initialData={seller}
+                                  onSuccess={() => setIsFormOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="flex-1">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Eliminar
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro de eliminar a {seller.name}?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Se eliminará permanentemente el registro del vendedor.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDeleteSeller}>Sí, eliminar</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
                 )}
             </DialogContent>
         </Dialog>
