@@ -99,7 +99,7 @@
         "commission": { "type": "number" },
         "conversionRate": { "type": "number" },
         "avatar": { "type": "string" },
-        "role": { "type": "string", "enum": ["Vendedor", "Vendedor Senior"] },
+        "role": { "type": "string", "enum": ["Vendedor", "Vendedor Senior", "Administrador"] },
         "user": { "type": "string" },
         "pass": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },

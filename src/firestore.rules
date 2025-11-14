@@ -12,41 +12,29 @@ service cloud.firestore {
         return request.auth.uid == userId;
     }
 
-    function getRole() {
-      // OJO: Esta función solo funciona de forma fiable en reglas "get", "write", "update", "delete".
-      // NO FUNCIONARÁ de forma fiable en reglas "list".
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-    }
-
     function isRole(role) {
-      return isSignedIn() && getRole() == role;
+      return isSignedIn() && request.auth.token.role == role;
     }
     
     function isOneOfRoles(roles) {
-        return isSignedIn() && getRole() in roles;
+        return isSignedIn() && request.auth.token.role in roles;
     }
     
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      // CUALQUIER usuario autenticado puede leer SU PROPIO documento de perfil.
       allow get: if isOwner(userId);
-      
-      // Solo un Administrador puede ver la lista de todos los usuarios.
       allow list: if isRole('Administrador');
-      
-      // Un usuario puede crear o actualizar SU PROPIO perfil.
-      // Esto es crucial para la asignación de rol después del login.
       allow create, update: if isOwner(userId);
     }
     
     match /prospects/{prospectId} {
-      allow create: if true; // Cualquiera puede crear un prospecto (desde el form público)
+      allow create: if true;
       allow read, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /proposals/{proposalId} {
-      allow read: if true; // Cualquiera puede leer una propuesta si tiene el enlace.
+      allow read: if true;
       allow write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
@@ -55,7 +43,7 @@ service cloud.firestore {
     }
     
     match /clients/{clientId} {
-      allow create: if true; // Cualquiera puede crear un cliente (desde el form público)
+      allow create: if true;
       allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
