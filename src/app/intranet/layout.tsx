@@ -35,6 +35,7 @@ const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { type: 'divider', label: 'Ventas' },
   { href: '/intranet/sales', icon: HandCoins, label: 'Ventas' },
+  { href: '/intranet/clients', icon: Users, label: 'Clientes' },
   { type: 'divider', label: 'Gestión' },
   { href: '/intranet/vendedores', icon: Briefcase, label: 'Vendedores' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },

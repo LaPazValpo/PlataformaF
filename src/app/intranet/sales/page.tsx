@@ -7,8 +7,8 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle } from 'lucide-react';
-import { doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle, Trash2 } from 'lucide-react';
+import { doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -20,10 +20,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: Proposal[] }) {
   const { user, userProfile } = useUser();
@@ -128,6 +140,36 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
       }
   }
 
+    const handleDeleteProspect = async () => {
+        if (!db) return;
+        
+        setIsUpdating(true);
+        const prospectRef = doc(db, 'prospects', prospect.id);
+        
+        deleteDoc(prospectRef)
+            .then(() => {
+                toast({
+                    title: 'Prospecto Eliminado',
+                    description: `El prospecto ${prospect.clientName} ha sido eliminado.`,
+                });
+            })
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: prospectRef.path,
+                    operation: 'delete',
+                });
+                errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error al eliminar',
+                    description: 'No tienes permisos para eliminar este prospecto.',
+                });
+            })
+            .finally(() => {
+                setIsUpdating(false);
+            });
+    };
+
   return (
     <Card>
       <CardHeader>
@@ -196,6 +238,26 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
                 <DropdownMenuItem onClick={() => handleCloseSale('Venta Perdida')}>
                   <XCircle className="mr-2 text-red-500" /> Venta Perdida
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Trash2 className="mr-2 text-destructive" /> Eliminar Prospecto
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Esta acción es irreversible. Se eliminará el prospecto permanentemente. No se borrará el cliente asociado.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDeleteProspect}>Eliminar</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
