@@ -1,30 +1,11 @@
 'use client';
 
-import { useFirestore } from '@/firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useDoc } from '@/firebase';
 import type { Proposal } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProposalDetails({ proposalId }: { proposalId: string }) {
-  const { firestore } = useFirestore();
-  const [data, setData] = useState<Proposal | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!firestore || !proposalId) return;
-    setLoading(true);
-    const ref = doc(firestore, 'proposals', proposalId);
-    const unsub = onSnapshot(ref, (snap) => {
-      if (snap.exists()) {
-        setData({ id: snap.id, ...(snap.data() as Omit<Proposal, 'id'>) });
-      } else {
-        setData(null);
-      }
-      setLoading(false);
-    });
-    return () => unsub();
-  }, [firestore, proposalId]);
+  const { data, loading } = useDoc<Proposal>('proposals', proposalId);
 
   if (loading) {
       return (
@@ -51,7 +32,7 @@ export default function ProposalDetails({ proposalId }: { proposalId: string }) 
         <Info label="Fecha" value={new Date(data.date).toLocaleString()} />
         <Info label="Estado" value={data.status} />
         <Info label="Cliente" value={data.clientName} />
-        <Info label="Vendedor" value={data.sellerName} />
+        <Info label="Vendedor" value={data.sellerName ?? '-'} />
         <Info
           label="Total"
           value={data.totalAmount?.toLocaleString('es-CL', { style: 'currency', currency: 'CLP' }) ?? '-'}
