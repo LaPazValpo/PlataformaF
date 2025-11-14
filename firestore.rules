@@ -33,20 +33,24 @@ service cloud.firestore {
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      // Un usuario autenticado puede leer su propio perfil (CRÍTICO para que getRole() funcione).
+      // El dueño puede leer su propio perfil.
       // Un Administrador puede leer cualquier perfil.
-      allow read: if (isSignedIn() && isOwner(userId)) || isRole('Administrador');
+      allow get: if isOwner(userId) || isRole('Administrador');
+      // Lectura de lista solo para administradores.
+      allow list: if isRole('Administrador');
       
-      // Cualquiera puede crear un perfil al registrarse.
-      // El dueño del perfil o un Administrador pueden escribir.
-      allow write: if isOwner(userId) || isRole('Administrador');
+      // Un usuario autenticado puede crear su propio perfil por primera vez.
+      allow create: if isOwner(userId);
+      // El dueño del perfil o un Administrador pueden actualizar.
+      allow update: if isOwner(userId) || isRole('Administrador');
     }
     
     match /prospects/{prospectId} {
       // Cualquiera puede crear un prospecto (para el formulario de la landing).
       allow create: if true;
       // Solo roles autorizados pueden leer y modificar prospectos.
-      allow read, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /proposals/{proposalId} {
