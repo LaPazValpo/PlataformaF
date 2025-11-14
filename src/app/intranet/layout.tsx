@@ -138,40 +138,39 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Si la carga ha terminado
+    // Solo toma una decisión cuando la carga inicial ha terminado.
     if (!loading) {
-      // Si no hay usuario autenticado, redirige al login
-      if (!user) {
+      // Si después de cargar, no hay usuario o el perfil del usuario no tiene un rol,
+      // entonces el usuario no está autorizado para estar en la intranet.
+      if (!user || !userProfile?.role) {
         router.replace('/login');
-      } 
-      // Si hay un usuario pero no se ha cargado su perfil con un rol válido,
-      // podría estar en proceso de creación. No hacemos nada y esperamos
-      // a que el hook se actualice. Si después de un tiempo sigue sin rol,
-      // es un estado anómalo, pero por ahora evitamos bucles de redirección.
-      // Si hay un perfil pero no tiene rol, lo tratamos como no autorizado.
-      else if (user && !userProfile?.role) {
-         // Opcional: podríamos redirigir a una página de "no autorizado" o al login.
-         // Por ahora, el skeleton de carga gestionará la espera.
       }
     }
   }, [user, userProfile, loading, router]);
   
-  // Muestra el esqueleto de carga mientras se verifica el estado de autenticación y el perfil de usuario.
-  // O si el usuario está autenticado pero su perfil (con rol) aún no está disponible.
-  if (loading || !user || !userProfile?.role) {
+  // Muestra el esqueleto de carga mientras se verifica la autenticación y se obtiene el perfil.
+  // Si el usuario está autenticado pero su perfil aún no se ha cargado (userProfile es null),
+  // la condición 'loading' se encargará de mostrar el esqueleto.
+  if (loading) {
     return <IntranetLayoutSkeleton />;
   }
   
-  // Si todo está correcto, muestra el layout de la intranet.
-  return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:justify-end">
-            <SidebarTrigger className="md:hidden"/>
-        </header>
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
-  );
+  // Si la carga ha finalizado y el usuario tiene un perfil con rol, puede acceder al contenido.
+  if (user && userProfile?.role) {
+    return (
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:justify-end">
+              <SidebarTrigger className="md:hidden"/>
+          </header>
+          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    );
+  }
+
+  // Si por alguna razón la carga finaliza pero el usuario no está autorizado,
+  // se muestra el esqueleto mientras useEffect hace la redirección.
+  return <IntranetLayoutSkeleton />;
 }
