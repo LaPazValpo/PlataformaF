@@ -54,20 +54,24 @@ service cloud.firestore {
     }
     
     match /proposals/{proposalId} {
-      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sales/{saleId} {
-      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /clients/{clientId} {
-      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sellers/{sellerId} {
        // Solo roles autorizados pueden ver la información de los vendedores.
-      allow read: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
       // Solo el administrador puede crear, actualizar o eliminar vendedores.
       allow write: if isRole('Administrador');
     }
