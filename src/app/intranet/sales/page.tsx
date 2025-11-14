@@ -312,6 +312,8 @@ const formatCurrency = (amount: number) => {
 
 
 export default function SalesPage() {
+  const db = useFirestore();
+  const { toast } = useToast();
   const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
   const { data: proposals, loading: loadingProposals } = useCollection<Proposal>('proposals');
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
@@ -333,7 +335,7 @@ export default function SalesPage() {
 
   const handleSendWhatsApp = (proposal: Proposal) => {
     if (!proposal.contactNumber) {
-        useToast().toast({
+        toast({
             variant: "destructive",
             title: "Número de contacto no disponible",
             description: "La propuesta no tiene un número de contacto para enviar por WhatsApp.",
@@ -355,6 +357,32 @@ export default function SalesPage() {
     setSelectedProposal(proposal);
     setIsPublicViewOpen(true);
   }
+
+  const handleDeleteProposal = async (proposalId: string) => {
+    if (!db) return;
+    const proposalRef = doc(db, 'proposals', proposalId);
+    try {
+      await deleteDoc(proposalRef);
+      toast({ title: 'Propuesta eliminada' });
+    } catch (e) {
+      const permissionError = new FirestorePermissionError({ path: proposalRef.path, operation: 'delete' });
+      errorEmitter.emit('permission-error', permissionError);
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos.' });
+    }
+  };
+
+  const handleDeleteSale = async (saleId: string) => {
+    if (!db) return;
+    const saleRef = doc(db, 'sales', saleId);
+    try {
+      await deleteDoc(saleRef);
+      toast({ title: 'Venta eliminada' });
+    } catch (e) {
+      const permissionError = new FirestorePermissionError({ path: saleRef.path, operation: 'delete' });
+      errorEmitter.emit('permission-error', permissionError);
+      toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos.' });
+    }
+  };
   
   return (
     <div className="w-full">
@@ -414,6 +442,23 @@ export default function SalesPage() {
                                          <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(p)} title="Ver Detalles Internos">
                                             <Info className="h-4 w-4" />
                                         </Button>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                              <Button variant="ghost" size="icon" title="Eliminar Propuesta">
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                              </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>¿Eliminar esta propuesta?</AlertDialogTitle>
+                                                    <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteProposal(p.id)}>Eliminar</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
                                 </td>
                             </tr>
@@ -442,6 +487,7 @@ export default function SalesPage() {
                         <th className="py-2 px-4 text-left">Vendedor</th>
                         <th className="py-2 px-4 text-right">Monto Final</th>
                         <th className="py-2 px-4 text-left">Estado Pago</th>
+                        <th className="py-2 px-4 text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -452,10 +498,29 @@ export default function SalesPage() {
                                 <td className="py-2 px-4">{s.seller}</td>
                                 <td className="py-2 px-4 text-right">{formatCurrency(s.totalAmount)}</td>
                                 <td className="py-2 px-4"><Badge variant={s.status === 'Pagado' ? 'default' : 'secondary'}>{s.status}</Badge></td>
+                                <td className="py-2 px-4 text-center">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button variant="ghost" size="icon" title="Eliminar Venta">
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Eliminar esta venta?</AlertDialogTitle>
+                                                <AlertDialogDescription>Esta acción no se puede deshacer y eliminará el registro de la venta permanentemente.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteSale(s.id)}>Eliminar</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </td>
                             </tr>
                         ))}
                         {sales.length === 0 && (
-                             <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No hay ventas cerradas.</td></tr>
+                             <tr><td colSpan={6} className="p-8 text-center text-muted-foreground">No hay ventas cerradas.</td></tr>
                         )}
                     </tbody>
                 </table>
