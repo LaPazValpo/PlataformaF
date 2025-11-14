@@ -1,15 +1,396 @@
 import type { Seller, Prospect, Proposal, Sale, InventoryItem, ServicePack, VirtualTomb, Testimonial, VirtualChapelPlan, IndividualService } from './types';
 
-// The local data has been removed to confirm that the application is fetching data from Firestore.
-// You can restore this data or continue using Firestore as the single source of truth.
+export const sellers: Seller[] = [
+  {
+    id: 'VEND-001',
+    name: 'Juan Pérez',
+    email: 'juan.perez@example.com',
+    initials: 'JP',
+    sales: 15,
+    status: 'Activo',
+    commission: 5,
+    conversionRate: 25,
+    avatar: '/avatars/01.png',
+    role: 'Vendedor',
+    user: 'jperez',
+    pass: 'pass123',
+    createdAt: '2023-01-15T09:00:00.000Z',
+    updatedAt: '2023-01-15T09:00:00.000Z',
+  },
+  {
+    id: 'VEND-002',
+    name: 'Maria García',
+    email: 'maria.garcia@example.com',
+    initials: 'MG',
+    sales: 25,
+    status: 'Activo',
+    commission: 6,
+    conversionRate: 30,
+    avatar: '/avatars/02.png',
+    role: 'Vendedor Senior',
+    user: 'mgarcia',
+    pass: 'pass123',
+    createdAt: '2023-01-10T11:00:00.000Z',
+    updatedAt: '2023-01-10T11:00:00.000Z',
+  },
+   {
+    id: 'VEND-003',
+    name: 'Carlos Rodríguez',
+    email: 'carlos.rodriguez@example.com',
+    initials: 'CR',
+    sales: 10,
+    status: 'Inactivo',
+    commission: 5,
+    conversionRate: 20,
+    avatar: '/avatars/03.png',
+    role: 'Vendedor',
+    user: 'crodriguez',
+    pass: 'pass123',
+    createdAt: '2023-02-01T14:00:00.000Z',
+    updatedAt: '2023-02-01T14:00:00.000Z',
+  },
+   {
+    id: 'VEND-004',
+    name: 'Ana López',
+    email: 'ana.lopez@example.com',
+    initials: 'AL',
+    sales: 30,
+    status: 'Activo',
+    commission: 7,
+    conversionRate: 35,
+    avatar: '/avatars/04.png',
+    role: 'Vendedor Senior',
+    user: 'alopez',
+    pass: 'pass123',
+    createdAt: '2022-12-20T10:00:00.000Z',
+    updatedAt: '2022-12-20T10:00:00.000Z',
+  },
+];
 
-export const sellers: Seller[] = [];
-export const prospects: Prospect[] = [];
-export const proposals: Proposal[] = [];
-export const sales: Sale[] = [];
-export const inventory: InventoryItem[] = [];
-export const servicePacks: ServicePack[] = [];
-export const virtualChapelPlans: VirtualChapelPlan[] = [];
-export const individualServices: IndividualService[] = [];
-export const virtualTombs: VirtualTomb[] = [];
-export const testimonials: Testimonial[] = [];
+export const prospects: Prospect[] = [
+  {
+    id: 'PROS-001',
+    prospectId: 'P001',
+    clientName: 'Laura Martinez',
+    contactNumber: '+56987654321',
+    email: 'laura.martinez@email.com',
+    sellerId: 'VEND-001',
+    sellerName: 'Juan Pérez',
+    date: '2024-07-20T10:00:00.000Z',
+    createdAt: '2024-07-20T10:00:00.000Z',
+    updatedAt: '2024-07-20T10:00:00.000Z',
+  },
+  {
+    id: 'PROS-002',
+    prospectId: 'P002',
+    clientName: 'Roberto Fernandez',
+    contactNumber: '+56912345678',
+    email: 'roberto.fernandez@email.com',
+    sellerId: 'VEND-002',
+    sellerName: 'Maria García',
+    date: '2024-07-21T11:30:00.000Z',
+    createdAt: '2024-07-21T11:30:00.000Z',
+    updatedAt: '2024-07-21T11:30:00.000Z',
+  },
+];
+
+export const proposals: Proposal[] = [
+  {
+    id: 'PROP-001',
+    clientName: 'Laura Martinez',
+    services: ['Pack Dignidad', 'Servicio de Catering'],
+    seller: 'Juan Pérez',
+    date: '2024-07-20T15:00:00.000Z',
+    status: 'En Negociación',
+    contactNumber: '+56987654321',
+    email: 'laura.martinez@email.com',
+    createdAt: '2024-07-20T15:00:00.000Z',
+    updatedAt: '2024-07-20T15:00:00.000Z',
+  },
+];
+
+export const sales: Sale[] = [
+  {
+    id: 'SALE-001',
+    clientName: 'Familia Gonzalez',
+    services: ['Pack Serenidad'],
+    seller: 'Maria García',
+    date: '2024-07-18T14:00:00.000Z',
+    status: 'Pagado',
+    totalAmount: 1800000,
+    contactNumber: '+56923456789',
+    createdAt: '2024-07-18T14:00:00.000Z',
+    updatedAt: '2024-07-18T14:00:00.000Z',
+  },
+   {
+    id: 'SALE-002',
+    clientName: 'Pedro Ramirez',
+    services: ['Cremación Simple', 'Urna de Mármol'],
+    seller: 'Juan Pérez',
+    date: '2024-06-25T18:00:00.000Z',
+    status: 'Pagado',
+    totalAmount: 1200000,
+    contactNumber: '+56934567890',
+    createdAt: '2024-06-25T18:00:00.000Z',
+    updatedAt: '2024-06-25T18:00:00.000Z',
+  },
+  {
+    id: 'SALE-003',
+    clientName: 'Familia Soto',
+    services: ['Pack Legado'],
+    seller: 'Ana López',
+    date: '2024-06-15T11:00:00.000Z',
+    status: 'Pendiente de Pago',
+    totalAmount: 3500000,
+    contactNumber: '+56945678901',
+    createdAt: '2024-06-15T11:00:00.000Z',
+    updatedAt: '2024-06-15T11:00:00.000Z',
+  }
+];
+
+export const inventory: InventoryItem[] = [
+  {
+    id: 'INV-001',
+    name: 'Ataúd de Pino Barnizado',
+    category: 'Ataúdes',
+    quantity: 12,
+    description: 'Modelo estándar, terminación barniz natural.',
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'INV-002',
+    name: 'Urna de Mármol',
+    category: 'Urnas',
+    quantity: 8,
+    description: 'Urna para cenizas, mármol blanco veteado.',
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+   {
+    id: 'INV-003',
+    name: 'Libro de Condolencias',
+    category: 'Papelería',
+    quantity: 50,
+    description: 'Tapa dura, 100 páginas.',
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'INV-004',
+    name: 'Arreglo Floral Grande',
+    category: 'Floristería',
+    quantity: 5,
+    description: 'Corazón de rosas blancas y liliums.',
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+];
+
+
+export const servicePacks: ServicePack[] = [
+  {
+    id: 'PACK-001',
+    title: 'Pack Dignidad',
+    price: '$950.000',
+    priceValue: 950000,
+    description: 'Un servicio esencial y respetuoso para una despedida digna.',
+    idealFor: 'Presupuestos ajustados',
+    features: [
+      { title: 'Urna de pino barnizada', image: '1', description: 'desc' },
+      { title: 'Arreglo floral sencillo', image: '2', description: 'desc' },
+      { title: 'Libro de condolencias físico', image: '3', description: 'desc' },
+    ],
+    recommended: false,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'PACK-002',
+    title: 'Pack Serenidad',
+    price: '$1.800.000',
+    priceValue: 1800000,
+    description: 'Un servicio completo que brinda tranquilidad y apoyo integral a la familia.',
+    idealFor: 'Familias que buscan un servicio completo',
+    features: [
+      { title: 'Urna de madera de roble', image: '4', description: 'desc' },
+      { title: 'Arreglo floral premium', image: '5', description: 'desc' },
+      { title: 'Libro de condolencias premium', image: '6', description: 'desc' },
+      { title: 'Servicio de cafetería', image: '7', description: 'desc' },
+    ],
+    recommended: true,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'PACK-003',
+    title: 'Pack Legado',
+    price: '$3.500.000',
+    priceValue: 3500000,
+    description: 'Un homenaje excepcional para honrar una vida extraordinaria.',
+    idealFor: 'Homenajes especiales y personalizados',
+    features: [
+      { title: 'Urna de caoba con detalles de lujo', image: '8', description: 'desc' },
+      { title: 'Arreglo floral de lujo con flores importadas', image: '9', description: 'desc' },
+      { title: 'Libro de condolencias de lujo', image: '10', description: 'desc' },
+      { title: 'Servicio de catering completo', image: '11', description: 'desc' },
+      { title: 'Músicos en vivo (cuarteto de cuerdas)', image: '12', description: 'desc' },
+    ],
+    recommended: false,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+   {
+    id: 'PACK-004',
+    title: 'Pack Celestial',
+    price: '$5.000.000',
+    priceValue: 5000000,
+    description: 'El más completo y exclusivo servicio para un adiós inolvidable y majestuoso.',
+    idealFor: 'Experiencias de despedida únicas',
+    features: [
+      { title: 'Urna de diseño personalizado', image: '21', description: 'desc' },
+      { title: 'Diseño floral exclusivo y personalizado', image: '22', description: 'desc' },
+      { title: 'Libro de condolencias artesanal único', image: '23', description: 'desc' },
+      { title: 'Menú gourmet preparado por chef', image: '24', description: 'desc' },
+      { title: 'Orquesta de cámara durante la ceremonia', image: '25', description: 'desc' },
+      { title: 'Video conmemorativo profesional', image: '26', description: 'desc' },
+    ],
+    recommended: false,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+];
+
+
+export const virtualChapelPlans: VirtualChapelPlan[] = [
+  {
+    id: 'VC-PLAN-01',
+    title: 'Plan Básico',
+    price: '$50.000',
+    priceValue: 50000,
+    description: 'Crea un espacio de memoria online sencillo y accesible.',
+    features: ['Página conmemorativa', 'Galería de 10 fotos', 'Libro de condolencias digital'],
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'VC-PLAN-02',
+    title: 'Plan Premium',
+    price: '$120.000',
+    priceValue: 120000,
+    description: 'Un homenaje digital más completo y personalizable.',
+    features: [
+      'Todo lo del Plan Básico',
+      'Galería de fotos ilimitada',
+      'Video conmemorativo',
+      'Dominio personalizado (1 año)',
+    ],
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+];
+
+export const individualServices: IndividualService[] = [
+  {
+    id: 'IND-SERV-01',
+    title: 'Tanatopraxia',
+    description: 'Preparación estética del cuerpo para el velatorio.',
+    price: '$150.000',
+    priceValue: 150000,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'IND-SERV-02',
+    title: 'Traslado Nacional',
+    description: 'Transporte del cuerpo a otra región del país.',
+    price: 'Consultar',
+    priceValue: 0,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+   {
+    id: 'IND-SERV-03',
+    title: 'Repatriación',
+    description: 'Gestión y transporte del cuerpo desde o hacia el extranjero.',
+    price: 'Consultar',
+    priceValue: 0,
+    createdAt: '2023-01-01T00:00:00.000Z',
+    updatedAt: '2023-01-01T00:00:00.000Z',
+  },
+];
+
+
+export const virtualTombs: VirtualTomb[] = [
+  {
+    id: 'TOMB-001',
+    name: 'Don Ricardo Morales',
+    birthDate: '1945-05-20',
+    passingDate: '2024-03-15',
+    mainImage: '13',
+    gallery: ['14', '15', '16'],
+    dedications: [
+      {
+        author: 'Su familia',
+        message: 'Siempre estarás en nuestros corazones, papá. Tu legado de amor y alegría vivirá por siempre.',
+        date: '2024-03-16T10:00:00Z',
+      },
+      {
+        author: 'Sus nietos',
+        message: 'Abuelo, te extrañamos mucho. Gracias por todas las historias y risas.',
+        date: '2024-03-17T14:30:00Z',
+      },
+    ],
+    createdAt: '2024-03-15T12:00:00.000Z',
+    updatedAt: '2024-03-15T12:00:00.000Z',
+  },
+  {
+    id: 'TOMB-002',
+    name: 'Doña Elena Vargas',
+    birthDate: '1952-11-10',
+    passingDate: '2024-06-01',
+    mainImage: '17',
+    gallery: ['18', '19', '20'],
+    dedications: [
+      {
+        author: 'Tu esposo, Juan',
+        message: 'Mi amada Elena, fuiste la luz de mi vida. Descansa en paz.',
+        date: '2024-06-02T09:00:00Z',
+      },
+       {
+        author: 'Tus hijos',
+        message: 'Mamá, tu amor incondicional nos guiará siempre. Te amamos.',
+        date: '2024-06-02T11:00:00Z',
+      },
+    ],
+    createdAt: '2024-06-01T18:00:00.000Z',
+    updatedAt: '2024-06-01T18:00:00.000Z',
+  },
+];
+
+export const testimonials: Testimonial[] = [
+  {
+    id: 'TEST-001',
+    name: 'Familia Torres',
+    relation: 'Servicio para nuestro padre',
+    quote: 'En un momento tan doloroso, encontramos en La Paz de Cristo un apoyo incondicional. Su profesionalismo y calidez humana hicieron toda la diferencia. Eternamente agradecidos.',
+    createdAt: '2024-04-10T00:00:00Z',
+    updatedAt: '2024-04-10T00:00:00Z',
+  },
+  {
+    id: 'TEST-002',
+    name: 'Ana Gutiérrez',
+    relation: 'Servicio para mi abuela',
+    quote: 'La atención al detalle y el respeto que mostraron en cada momento fue reconfortante. Nos sentimos acompañados y comprendidos. Un servicio excepcional.',
+    createdAt: '2024-05-22T00:00:00Z',
+    updatedAt: '2024-05-22T00:00:00Z',
+  },
+  {
+    id: 'TEST-003',
+    name: 'Carlos Mendoza',
+    relation: 'Servicio de cremación',
+    quote: 'El proceso fue manejado con una dignidad y serenidad que nos dio mucha paz. Resolvieron todas nuestras dudas con paciencia y empatía. Los recomiendo sin dudarlo.',
+    createdAt: '2024-06-30T00:00:00Z',
+    updatedAt: '2024-06-30T00:00:00Z',
+  },
+];

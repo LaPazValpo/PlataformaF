@@ -44,7 +44,6 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // If it's the superuser, ensure their role is set in Firestore.
       if (values.email === 'lapazdecristovalpo@gmail.com') {
         const userRef = doc(db, 'users', user.uid);
         await setDoc(userRef, {
@@ -61,11 +60,26 @@ export default function LoginPage() {
       });
       router.push('/intranet/dashboard');
     } catch (error: any) {
-      console.error(error);
+      console.error("Firebase Auth Error:", error);
+      let description = 'Credenciales incorrectas o el usuario no existe.';
+      if (error.code) {
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            description = 'El correo electrónico o la contraseña son incorrectos.';
+            break;
+          case 'auth/network-request-failed':
+            description = 'Error de red. Por favor, revisa tu conexión a internet.';
+            break;
+          default:
+            description = `Error: ${error.message}`;
+        }
+      }
       toast({
         variant: 'destructive',
         title: 'Error de autenticación',
-        description: 'Credenciales incorrectas o el usuario no existe.',
+        description: description,
       });
     }
   };
