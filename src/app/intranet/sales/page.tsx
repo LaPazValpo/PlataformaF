@@ -191,75 +191,77 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
             </div>
         )}
       </CardContent>
-      <CardFooter className="flex-col items-stretch gap-2">
-          {prospect.status === 'Nuevo' && (
-             <Button onClick={handleTakeProspect} disabled={isUpdating} className="w-full">
-                <Hand className="mr-2" />
-                {isUpdating ? 'Asignando...' : 'Tomar Venta'}
-            </Button>
-          )}
+      <CardFooter className="flex items-center gap-2">
+          <div className="flex-grow space-y-2">
+            {prospect.status === 'Nuevo' && (
+              <Button onClick={handleTakeProspect} disabled={isUpdating} className="w-full">
+                  <Hand className="mr-2" />
+                  {isUpdating ? 'Asignando...' : 'Tomar Venta'}
+              </Button>
+            )}
 
-          {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && !hasProposal && (
-             <Dialog open={isCreateProposalOpen} onOpenChange={setIsCreateProposalOpen}>
-                <DialogTrigger asChild>
-                    <Button className="w-full">
-                        <FileText className="mr-2" />
-                        Crear Propuesta
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Nueva Propuesta para {prospect.clientName}</DialogTitle>
-                    </DialogHeader>
-                    <ProposalForm
-                        mode="create"
-                        prospectId={prospect.id}
-                        initialData={{
-                            clientName: prospect.clientName,
-                            contactNumber: prospect.contactNumber,
-                            email: prospect.email
-                        }}
-                        onSuccess={() => setIsCreateProposalOpen(false)}
-                    />
-                </DialogContent>
-            </Dialog>
-          )}
-          
-          {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full">Cerrar Venta</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => handleCloseSale('Venta Ganada')}>
-                  <CheckCircle className="mr-2 text-green-500" /> Venta Ganada
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleCloseSale('Venta Perdida')}>
-                  <XCircle className="mr-2 text-red-500" /> Venta Perdida
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Trash2 className="mr-2 text-destructive" /> Eliminar Prospecto
-                      </DropdownMenuItem>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta acción es irreversible. Se eliminará el prospecto permanentemente. No se borrará el cliente asociado.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDeleteProspect}>Eliminar</AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+            {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && !hasProposal && (
+              <Dialog open={isCreateProposalOpen} onOpenChange={setIsCreateProposalOpen}>
+                  <DialogTrigger asChild>
+                      <Button className="w-full">
+                          <FileText className="mr-2" />
+                          Crear Propuesta
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl">
+                      <DialogHeader>
+                          <DialogTitle>Nueva Propuesta para {prospect.clientName}</DialogTitle>
+                      </DialogHeader>
+                      <ProposalForm
+                          mode="create"
+                          prospectId={prospect.id}
+                          initialData={{
+                              clientName: prospect.clientName,
+                              contactNumber: prospect.contactNumber,
+                              email: prospect.email
+                          }}
+                          onSuccess={() => setIsCreateProposalOpen(false)}
+                      />
+                  </DialogContent>
+              </Dialog>
+            )}
+            
+            {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full">Cerrar Venta</Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => handleCloseSale('Venta Ganada')}>
+                    <CheckCircle className="mr-2 text-green-500" /> Venta Ganada
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleCloseSale('Venta Perdida')}>
+                    <XCircle className="mr-2 text-red-500" /> Venta Perdida
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          <AlertDialog>
+              <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="shrink-0" disabled={isUpdating}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                  <AlertDialogHeader>
+                      <AlertDialogTitle>¿Estás seguro de eliminar este prospecto?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                          Esta acción es irreversible y eliminará el prospecto de la lista, pero conservará el contacto en la base de datos de clientes.
+                      </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteProspect}>Eliminar Prospecto</AlertDialogAction>
+                  </AlertDialogFooter>
+              </AlertDialogContent>
+          </AlertDialog>
       </CardFooter>
     </Card>
   );
