@@ -41,11 +41,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { Separator } from '@/components/ui/separator';
 
 
 type SellerPerformance = Seller & {
   totalSalesValue: number;
   commissionEarned: number;
+  monthlySalesValue: number;
+  monthlyCommission: number;
 };
 
 const formatCurrency = (amount: number) => {
@@ -66,10 +69,10 @@ function SellerProfileModal({ seller, children }: { seller: SellerPerformance, c
 
 
     const stats = [
-        { icon: BarChart, label: "Ventas (Unidades)", value: seller.sales },
-        { icon: DollarSign, label: "Ventas (Valor)", value: formatCurrency(seller.totalSalesValue) },
+        { icon: BarChart, label: "Ventas Totales (Unidades)", value: seller.sales },
+        { icon: DollarSign, label: "Ventas Totales (Valor)", value: formatCurrency(seller.totalSalesValue) },
         { icon: Target, label: "Tasa de Conversión", value: `${seller.conversionRate}%` },
-        { icon: TrendingUp, label: "Comisión Ganada", value: formatCurrency(seller.commissionEarned) },
+        { icon: TrendingUp, label: "Comisión Total Ganada", value: formatCurrency(seller.commissionEarned) },
     ]
 
     const handleDeleteSeller = async () => {
@@ -165,16 +168,38 @@ function SellerProfileModal({ seller, children }: { seller: SellerPerformance, c
 function SellerCard({ seller }: { seller: SellerPerformance }) {
   return (
     <SellerProfileModal seller={seller}>
-        <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1">
-          <CardContent className="flex flex-col items-center p-6 text-center">
-            <Avatar className="w-20 h-20 mb-4">
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 flex flex-col">
+          <CardHeader className="flex flex-row items-center gap-4">
+            <Avatar className="w-12 h-12">
               <AvatarImage src={`https://picsum.photos/seed/${seller.id}/100/100`} />
               <AvatarFallback>{seller.initials}</AvatarFallback>
             </Avatar>
-            <h3 className="font-semibold text-lg">{seller.name}</h3>
-            <p className="text-sm text-muted-foreground">{seller.email}</p>
-            <Badge variant="outline" className="mt-4">{seller.role}</Badge>
+            <div className="flex-1">
+                <h3 className="font-semibold">{seller.name}</h3>
+                <p className="text-xs text-muted-foreground">{seller.role}</p>
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow space-y-3">
+             <div className="flex items-start justify-between gap-2">
+                 <div className="text-sm text-muted-foreground flex items-center gap-2">
+                     <DollarSign className="h-4 w-4" />
+                     Ventas (Mes)
+                 </div>
+                 <div className="font-bold text-sm">{formatCurrency(seller.monthlySalesValue)}</div>
+             </div>
+             <div className="flex items-start justify-between gap-2">
+                 <div className="text-sm text-muted-foreground flex items-center gap-2">
+                     <TrendingUp className="h-4 w-4" />
+                     Comisión (Mes)
+                 </div>
+                 <div className="font-bold text-sm text-green-600">{formatCurrency(seller.monthlyCommission)}</div>
+             </div>
           </CardContent>
+           <CardFooter className="p-2 border-t mt-auto">
+             <p className="text-xs text-muted-foreground w-full text-center">
+                Total Histórico: {formatCurrency(seller.totalSalesValue)}
+             </p>
+           </CardFooter>
         </Card>
     </SellerProfileModal>
   );
@@ -195,12 +220,20 @@ function VendedoresPageSkeleton() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
                     <Card key={i}>
-                        <CardContent className="flex flex-col items-center p-6 text-center">
-                            <Skeleton className="w-20 h-20 rounded-full mb-4" />
-                            <Skeleton className="h-6 w-3/4 mb-2" />
-                            <Skeleton className="h-4 w-full mb-4" />
-                            <Skeleton className="h-6 w-20" />
+                        <CardHeader className="flex flex-row items-center gap-4">
+                            <Skeleton className="w-12 h-12 rounded-full" />
+                            <div className="flex-1 space-y-2">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/2" />
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-full" />
                         </CardContent>
+                        <CardFooter className="p-2 border-t">
+                            <Skeleton className="h-3 w-1/2 mx-auto" />
+                        </CardFooter>
                     </Card>
                 ))}
             </div>
@@ -218,19 +251,35 @@ export default function VendedoresPage() {
   
   const isAdmin = userProfile?.role === 'Administrador';
 
-  const sellerPerformanceData = React.useMemo(() => {
+  const sellerPerformanceData: SellerPerformance[] = React.useMemo(() => {
     if (loadingSellers || loadingSales || !sellers || !sales) return [];
     
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
     return sellers.map(seller => {
-      const sellerSales = sales.filter(sale => sale.seller === seller.name);
-      const totalSalesValue = sellerSales.reduce((acc, sale) => acc + sale.totalAmount, 0);
-      const commissionEarned = totalSalesValue * (seller.commission / 100);
+      const allSellerSales = sales.filter(sale => sale.seller === seller.name);
+      
+      const monthlySales = allSellerSales.filter(sale => {
+          const saleDate = new Date(sale.date);
+          return saleDate >= startOfMonth && saleDate <= endOfMonth;
+      });
+
+      const totalSalesValue = allSellerSales.reduce((acc, sale) => acc + sale.totalAmount, 0);
+      const monthlySalesValue = monthlySales.reduce((acc, sale) => acc + sale.totalAmount, 0);
+
+      const commissionRate = seller.commission / 100;
+      const commissionEarned = totalSalesValue * commissionRate;
+      const monthlyCommission = monthlySalesValue * commissionRate;
 
       return {
         ...seller,
-        sales: sellerSales.length,
+        sales: allSellerSales.length, // Total number of sales
         totalSalesValue,
         commissionEarned,
+        monthlySalesValue,
+        monthlyCommission,
       };
     });
 
