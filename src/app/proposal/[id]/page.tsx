@@ -96,10 +96,9 @@ function ProposalPageSkeleton() {
 }
 
 
-export default function QuotationPage({ params }: { params?: { id: string }}) {
+export default function ProposalPage({ params }: { params?: { id: string }}) {
   const pageParams = useParams();
-  // Prioritize params from props (for modal usage), fallback to URL params
-  const proposalId = params?.id || pageParams.id as string;
+  const proposalId = params?.id ?? (pageParams?.id as string);
   
   // Firestore hooks
   const db = useFirestore();
