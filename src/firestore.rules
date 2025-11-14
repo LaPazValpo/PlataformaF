@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // -- Funciones de Ayuda de Seguridad --
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+        return request.auth.uid == userId;
+    }
+
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isRole(role) {
+        return isSignedIn() && getRole() == role;
+    }
+    
+    // -- Reglas por Colección --
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isRole('Administrador');
+      allow create, update: if isOwner(userId);
+    }
+    
+    match /prospects/{prospectId} {
+      allow create: if true;
+      allow read, update, delete: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+    }
+    
+    match /proposals/{proposalId} {
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+    }
+    
+    match /sales/{saleId} {
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+    }
+    
+    match /clients/{clientId} {
+      allow create: if true;
+      allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+    }
+    
+    match /sellers/{sellerId} {
+      allow read: if isSignedIn();
+      allow write: if isRole('Administrador');
+    }
+    
+    // --- Colecciones Públicas y de Contenido ---
+
+    match /servicePacks/{packId} {
+      allow read: if true;
+      allow write: if isRole('Administrador');
+    }
+    
+    match /virtualChapelPlans/{planId} {
+      allow read: if true;
+      allow write: if isRole('Administrador');
+    }
+    
+    match /individualServices/{serviceId} {
+      allow read: if true;
+      allow write: if isRole('Administrador');
+    }
+    
+    match /virtualTombs/{tombId} {
+      allow read: if true;
+      allow write: if isRole('Administrador');
+    }
+
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isRole('Administrador');
+    }
+
+    // --- Colecciones solo para Administradores ---
+    
+    match /inventory/{itemId} {
+      allow read, write: if isRole('Administrador');
+    }
+  }
+}

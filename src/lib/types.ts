@@ -9,13 +9,13 @@ export interface UserProfile {
 
 export interface Prospect {
   id: string;
-  prospectId: string;
   clientName: string;
   contactNumber: string;
   email: string;
-  sellerId: string;
+  sellerId: string | null;
   sellerName: string;
   date: string;
+  status: 'Nuevo' | 'Contactado' | 'En Seguimiento' | 'No Calificado' | 'Venta Ganada' | 'Venta Perdida';
   createdAt: string;
   updatedAt: string;
 }

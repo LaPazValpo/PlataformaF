@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, writeBatch, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -64,42 +64,71 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
         setEmail('');
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!clientName || !contactNumber || !db) return;
 
         setIsLoading(true);
 
+        const now = new Date().toISOString();
+
         const newProspect = {
-            prospectId: `PROS-${Date.now()}`,
             clientName,
             contactNumber,
             email,
             sellerId: null,
             sellerName: 'Sin Asignar',
-            date: new Date().toISOString(),
+            date: now,
+            status: 'Nuevo',
+            createdAt: now,
+            updatedAt: now,
         };
 
-        const prospectsCol = collection(db, 'prospects');
-        addDoc(prospectsCol, newProspect)
-          .then(() => {
+        const newClient = {
+            name: clientName,
+            email,
+            phone: contactNumber,
+            seller: 'Sin Asignar',
+            date: now,
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        try {
+            const batch = writeBatch(db);
+            
+            const prospectsCol = collection(db, 'prospects');
+            const prospectRef = doc(prospectsCol);
+            batch.set(prospectRef, newProspect);
+
+            const clientsCol = collection(db, 'clients');
+            const clientRef = doc(clientsCol);
+            batch.set(clientRef, newClient);
+
+            await batch.commit();
+            
             toast({
                 title: 'Solicitud Recibida con Éxito',
                 description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
             });
             setIsOpen(false);
             resetForm();
-          })
-          .catch((serverError) => {
+
+        } catch (serverError) {
+             console.error("Error creating prospect and client:", serverError);
              const permissionError = new FirestorePermissionError({
-                path: prospectsCol.path,
+                path: 'prospects or clients',
                 operation: 'create',
-                requestResourceData: newProspect,
+                requestResourceData: { newProspect, newClient },
              });
              errorEmitter.emit('permission-error', permissionError);
-          })
-          .finally(() => {
+             toast({
+                variant: 'destructive',
+                title: 'Error al enviar la solicitud',
+                description: 'Hubo un problema al registrar su información. Por favor, intente más tarde.',
+             });
+        } finally {
             setIsLoading(false);
-          });
+        }
     }
 
     return (
@@ -307,7 +336,8 @@ export default function Home() {
                         src="https://picsum.photos/seed/blog1/600/400"
                         alt="Blog post 1"
                         data-ai-hint="grief support"
-                        fill
+                        width={600}
+                        height={400}
                         className="object-cover"
                       />
                     </div>
@@ -338,7 +368,8 @@ export default function Home() {
                         src="https://picsum.photos/seed/blog2/600/400"
                         alt="Blog post 2"
                         data-ai-hint="funeral ritual"
-                        fill
+                        width={600}
+                        height={400}
                         className="object-cover"
                       />
                     </div>
@@ -369,7 +400,8 @@ export default function Home() {
                         src="https://picsum.photos/seed/blog3/600/400"
                         alt="Blog post 3"
                         data-ai-hint="virtual connection"
-                        fill
+                        width={600}
+                        height={400}
                         className="object-cover"
                       />
                     </div>
