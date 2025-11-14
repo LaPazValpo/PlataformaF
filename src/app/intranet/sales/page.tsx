@@ -18,8 +18,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 
-import { sellers, sales } from '@/lib/data';
-import type { Seller } from '@/lib/types';
+import type { Sale, Seller } from '@/lib/types';
+import { useCollection } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,23 +39,12 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type SellerPerformance = Seller & {
   totalSalesValue: number;
   commissionEarned: number;
 };
-
-const sellerPerformanceData: SellerPerformance[] = sellers.map(seller => {
-  const sellerSales = sales.filter(sale => sale.seller === seller.name);
-  const totalSalesValue = sellerSales.reduce((acc, sale) => acc + sale.totalAmount, 0);
-  const commissionEarned = totalSalesValue * (seller.commission / 100);
-
-  return {
-    ...seller,
-    totalSalesValue,
-    commissionEarned,
-  };
-});
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', {
@@ -146,18 +135,78 @@ export const columns: ColumnDef<SellerPerformance>[] = [
     cell: ({ row }) => (
       <div className="capitalize">
         <Badge variant={row.getValue('status') === 'Activo' ? 'default' : 'secondary'}>
-          {row.getValue('status')}
+          {row.getValue('status') as string}
         </Badge>
       </div>
     ),
   },
 ];
 
+function SalesPerformanceSkeleton() {
+    return (
+        <div className="w-full">
+            <PageHeader
+                title="Rendimiento de Ventas"
+                description="Analiza el rendimiento de cada vendedor."
+            />
+            <div className="flex items-center py-4">
+                <Skeleton className="h-10 w-full max-w-sm" />
+                <Skeleton className="h-10 w-24 ml-auto" />
+            </div>
+            <div className="rounded-md border">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            {[...Array(6)].map((_, i) => (
+                                <TableHead key={i}>
+                                    <Skeleton className="h-5 w-full" />
+                                </TableHead>
+                            ))}
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {[...Array(5)].map((_, i) => (
+                            <TableRow key={i}>
+                                {[...Array(6)].map((_, j) => (
+                                    <TableCell key={j}>
+                                        <Skeleton className="h-5 w-full" />
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    )
+}
+
 export default function SalesPerformancePage() {
+  const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
+  const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
+  
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const sellerPerformanceData = React.useMemo(() => {
+    if (loadingSellers || loadingSales) return [];
+    
+    return sellers.map(seller => {
+      const sellerSales = sales.filter(sale => sale.seller === seller.name);
+      const totalSalesValue = sellerSales.reduce((acc, sale) => acc + sale.totalAmount, 0);
+      const commissionEarned = totalSalesValue * (seller.commission / 100);
+
+      return {
+        ...seller,
+        sales: sellerSales.length, // Update sales count from actual sales
+        totalSalesValue,
+        commissionEarned,
+      };
+    });
+
+  }, [sellers, sales, loadingSellers, loadingSales]);
 
   const table = useReactTable({
     data: sellerPerformanceData,
@@ -177,6 +226,10 @@ export default function SalesPerformancePage() {
       rowSelection,
     },
   });
+
+  if (loadingSales || loadingSellers) {
+    return <SalesPerformanceSkeleton />;
+  }
 
   return (
     <div className="w-full">
@@ -258,3 +311,5 @@ export default function SalesPerformancePage() {
     </div>
   );
 }
+
+    
