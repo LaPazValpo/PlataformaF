@@ -30,15 +30,14 @@ service cloud.firestore {
 
     match /users/{userId} {
       // CUALQUIER usuario autenticado puede leer SU PROPIO documento de perfil.
-      // Esto es crucial para que la aplicación pueda verificar el rol del usuario después del login.
       allow get: if isOwner(userId);
       
       // Solo un Administrador puede ver la lista de todos los usuarios.
       allow list: if isRole('Administrador');
       
-      // CUALQUIER usuario autenticado puede crear o actualizar SU PROPIO documento.
-      // Esto es necesario para la asignación inicial de rol después del login.
-      allow write: if isOwner(userId);
+      // Un usuario puede crear o actualizar SU PROPIO perfil.
+      // Esto es crucial para la asignación de rol después del login.
+      allow create, update: if isOwner(userId);
     }
     
     // Para las colecciones de la intranet, ahora permitimos la lectura si el usuario tiene
