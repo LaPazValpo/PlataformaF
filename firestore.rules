@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función para verificar si el usuario está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar el rol del usuario
+    function hasRole(role) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role;
+    }
+    
+    // Usuarios
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (request.auth.uid == userId || hasRole('Administrador'));
+    }
+    
+    // Prospectos
+    match /prospects/{prospectId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    // Propuestas
+    match /proposals/{proposalId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    // Ventas
+    match /sales/{saleId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    // Clientes
+    match /clients/{clientId} {
+      allow read, write: if isSignedIn();
+    }
+    
+    // Vendedores
+    match /sellers/{sellerId} {
+      allow read: if isSignedIn();
+      allow write: if hasRole('Administrador');
+    }
+    
+    // Paquetes de Servicios (público para lectura)
+    match /servicePacks/{packId} {
+      allow read: if true;
+      allow write: if hasRole('Administrador');
+    }
+    
+    // Planes de Capilla Virtual (público para lectura)
+    match /virtualChapelPlans/{planId} {
+      allow read: if true;
+      allow write: if hasRole('Administrador');
+    }
+    
+    // Servicios Individuales (público para lectura)
+    match /individualServices/{serviceId} {
+      allow read: if true;
+      allow write: if hasRole('Administrador');
+    }
+    
+    // Tumbas Virtuales (público para lectura)
+    match /virtualTombs/{tombId} {
+      allow read: if true;
+      allow write: if hasRole('Administrador');
+    }
+    
+    // Inventario
+    match /inventory/{itemId} {
+      allow read, write: if hasRole('Administrador');
+    }
+    
+    // Testimonios (público para lectura)
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if hasRole('Administrador');
+    }
+  }
+}
