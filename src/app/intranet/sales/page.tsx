@@ -191,7 +191,7 @@ export default function SalesPerformancePage() {
   const [rowSelection, setRowSelection] = React.useState({});
 
   const sellerPerformanceData = React.useMemo(() => {
-    if (loadingSellers || loadingSales) return [];
+    if (loadingSellers || loadingSales || !sellers || !sales) return [];
     
     return sellers.map(seller => {
       const sellerSales = sales.filter(sale => sale.seller === seller.name);
@@ -311,5 +311,3 @@ export default function SalesPerformancePage() {
     </div>
   );
 }
-
-    
