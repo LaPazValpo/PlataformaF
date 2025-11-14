@@ -2,9 +2,9 @@
 
 import * as React from 'react';
 import {
-  CaretSortIcon,
-  ChevronDownIcon,
-} from '@radix-ui/react-icons';
+  ArrowUpDown,
+  ChevronDown,
+} from 'lucide-react';
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -82,7 +82,7 @@ export const columns: ColumnDef<SellerPerformance>[] = [
         className="text-right w-full"
       >
         Ventas (Unidades)
-        <CaretSortIcon className="ml-2 h-4 w-4" />
+        <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => <div className="text-center">{row.getValue('sales')}</div>,
@@ -96,7 +96,7 @@ export const columns: ColumnDef<SellerPerformance>[] = [
           className="text-right w-full"
         >
           Ventas (Valor)
-          <CaretSortIcon className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
     cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('totalSalesValue'))}</div>,
@@ -110,7 +110,7 @@ export const columns: ColumnDef<SellerPerformance>[] = [
         className="text-right w-full"
       >
         Tasa de Conversión
-        <CaretSortIcon className="ml-2 h-4 w-4" />
+        <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => <div className="text-center">{row.getValue('conversionRate')}%</div>,
@@ -124,7 +124,7 @@ export const columns: ColumnDef<SellerPerformance>[] = [
         className="text-right w-full"
       >
         Comisión Ganada
-        <CaretSortIcon className="ml-2 h-4 w-4" />
+        <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('commissionEarned'))}</div>,
@@ -247,7 +247,7 @@ export default function SalesPerformancePage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columnas <ChevronDownIcon className="ml-2 h-4 w-4" />
+              Columnas <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
