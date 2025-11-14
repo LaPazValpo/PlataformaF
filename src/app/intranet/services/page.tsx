@@ -1,21 +1,22 @@
+
 'use client';
 
 import * as React from 'react';
 import Image from 'next/image';
 import { Check, Star, Edit } from 'lucide-react';
 import { PageHeader } from '@/components/common/page-header';
-import { servicePacks, individualServices, virtualChapelPlans } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { ServicePack, ServicePackFeature, IndividualService, VirtualChapelPlan } from '@/lib/types';
-import { useUser } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ServicePackForm from '@/components/intranet/services/ServicePackForm';
 import IndividualServiceForm from '@/components/intranet/services/IndividualServiceForm';
 import VirtualChapelPlanForm from '@/components/intranet/services/VirtualChapelPlanForm';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function FeatureImage({ feature }: { feature: ServicePackFeature }) {
   const placeholder = PlaceHolderImages.find(p => p.id === feature.image);
@@ -169,8 +170,55 @@ function VirtualChapelPlanCard({ plan }: { plan: VirtualChapelPlan }) {
     )
 }
 
+function ServicesSkeleton() {
+    return (
+        <div className="flex flex-col gap-8">
+            <PageHeader
+                title="Paquetes de Servicios"
+                description="Explora y personaliza nuestros paquetes de servicios funerarios."
+            />
+             <section>
+                <h2 className="text-2xl font-bold tracking-tight mb-4"><Skeleton className="h-8 w-48" /></h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                        <Card key={i}>
+                            <CardHeader>
+                                <Skeleton className="h-6 w-3/4" />
+                                <Skeleton className="h-4 w-1/2" />
+                                <Skeleton className="h-8 w-1/3 mt-2" />
+                            </CardHeader>
+                            <CardContent>
+                                <Skeleton className="h-10 w-full" />
+                                <Separator className="my-4" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-full" />
+                                    <Skeleton className="h-4 w-full" />
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Skeleton className="h-10 w-full" />
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            </section>
+        </div>
+    )
+}
+
 
 export default function ServicesPage() {
+  const { data: servicePacks, loading: loadingPacks } = useCollection<ServicePack>('servicePacks');
+  const { data: individualServices, loading: loadingIndividual } = useCollection<IndividualService>('individualServices');
+  const { data: virtualChapelPlans, loading: loadingChapel } = useCollection<VirtualChapelPlan>('virtualChapelPlans');
+
+  const loading = loadingPacks || loadingIndividual || loadingChapel;
+
+  if (loading) {
+      return <ServicesSkeleton />;
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -212,3 +260,5 @@ export default function ServicesPage() {
     </div>
   );
 }
+
+    
