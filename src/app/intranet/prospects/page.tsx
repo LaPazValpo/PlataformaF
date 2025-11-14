@@ -1,213 +1,174 @@
 'use client';
 
 import * as React from 'react';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-
 import type { Prospect } from '@/lib/types';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUpDown } from 'lucide-react';
+import { Hand, Mail, Phone } from 'lucide-react';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
-const getStatusVariant = (status: Prospect['status']) => {
-  switch (status) {
-    case 'Nuevo':
-      return 'default';
-    case 'Contactado':
-    case 'En Seguimiento':
-      return 'secondary';
-    case 'Venta Ganada':
-      return 'default'; // Success variant could be green
-    case 'Venta Perdida':
-    case 'No Calificado':
-      return 'destructive';
-    default:
-      return 'outline';
-  }
-};
-
-
-export const columns: ColumnDef<Prospect>[] = [
-    {
-        accessorKey: 'clientName',
-        header: 'Cliente',
-        cell: ({ row }) => (
-            <div className="font-medium">{row.getValue('clientName')}</div>
-        ),
-    },
-    {
-        accessorKey: 'contactNumber',
-        header: 'Contacto',
-        cell: ({ row }) => (
-            <div className="text-muted-foreground">
-                <div>{row.original.contactNumber}</div>
-                <div className="text-xs">{row.original.email}</div>
-            </div>
-        )
-    },
-    {
-        accessorKey: 'date',
-        header: ({ column }) => (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-            >
-                Fecha de Ingreso
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-        ),
-        cell: ({ row }) => (
-            <div>{format(new Date(row.getValue('date')), 'dd MMM yyyy, HH:mm', { locale: es })}</div>
-        ),
-    },
-    {
-        accessorKey: 'status',
-        header: 'Estado',
-        cell: ({ row }) => (
-            <Badge variant={getStatusVariant(row.getValue('status'))}>
-                {row.getValue('status')}
-            </Badge>
-        ),
-    },
-    {
-        accessorKey: 'sellerName',
-        header: 'Vendedor Asignado',
-    },
+const prospectStatuses: Prospect['status'][] = [
+  'Nuevo',
+  'Contactado',
+  'En Seguimiento',
+  'No Calificado',
+  'Venta Ganada',
+  'Venta Perdida',
 ];
 
-function ProspectsSkeleton() {
-    return (
-        <div className="w-full">
-            <PageHeader
-                title="Prospección de Ventas"
-                description="Gestiona los potenciales clientes desde el primer contacto hasta el cierre."
-            />
-            <div className="flex items-center py-4">
-                <Skeleton className="h-10 w-full max-w-sm" />
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {[...Array(5)].map((_, i) => (
-                                <TableHead key={i}><Skeleton className="h-5 w-full" /></TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {[...Array(5)].map((_, i) => (
-                            <TableRow key={i}>
-                                {[...Array(5)].map((_, j) => (
-                                    <TableCell key={j}><Skeleton className="h-5 w-full" /></TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
+function ProspectCard({ prospect }: { prospect: Prospect }) {
+  const { user, userProfile } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = React.useState(false);
+
+  const handleTakeProspect = async () => {
+    if (!user || !userProfile || !db) return;
+    setIsUpdating(true);
+
+    const prospectRef = doc(db, 'prospects', prospect.id);
+    const updatedData = {
+        sellerId: user.uid,
+        sellerName: userProfile.name,
+        status: 'Contactado' as Prospect['status'],
+        updatedAt: new Date().toISOString()
+    };
+
+    updateDoc(prospectRef, updatedData)
+      .then(() => {
+        toast({
+          title: 'Prospecto Asignado',
+          description: `${prospect.clientName} ahora es tu prospecto.`,
+        });
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: prospectRef.path,
+            operation: 'update',
+            requestResourceData: updatedData,
+         });
+         errorEmitter.emit('permission-error', permissionError);
+         toast({
+            variant: 'destructive',
+            title: 'Error al asignar prospecto',
+            description: 'No tienes permisos para realizar esta acción.',
+         });
+      })
+      .finally(() => {
+        setIsUpdating(false);
+      });
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{prospect.clientName}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4" />
+          <span>{prospect.contactNumber}</span>
         </div>
-    )
+        {prospect.email && (
+            <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <span>{prospect.email}</span>
+            </div>
+        )}
+        {prospect.status !== 'Nuevo' && (
+            <div className="text-xs pt-2">
+                Asignado a: <span className="font-semibold">{prospect.sellerName}</span>
+            </div>
+        )}
+      </CardContent>
+      {prospect.status === 'Nuevo' && (
+        <CardFooter>
+          <Button onClick={handleTakeProspect} disabled={isUpdating} className="w-full">
+            <Hand className="mr-2" />
+            {isUpdating ? 'Asignando...' : 'Tomar Prospecto'}
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
+  );
+}
+
+function ProspectsSkeleton() {
+  return (
+    <div className="w-full">
+      <PageHeader
+        title="Prospección de Ventas"
+        description="Gestiona los potenciales clientes desde el primer contacto hasta el cierre."
+      />
+      <div className="mt-8 flex gap-4 overflow-x-auto pb-4">
+        {prospectStatuses.map(status => (
+          <div key={status} className="flex-shrink-0 w-72">
+            <h2 className="font-semibold px-2 mb-2">{status}</h2>
+            <div className="space-y-4 p-2 rounded-lg bg-muted/50 h-full">
+                {[...Array(2)].map((_, i) => (
+                    <Card key={i}>
+                        <CardHeader>
+                             <Skeleton className="h-5 w-3/4" />
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-5/6" />
+                        </CardContent>
+                        <CardFooter>
+                             <Skeleton className="h-10 w-full" />
+                        </CardFooter>
+                    </Card>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export default function ProspectsPage() {
-    const { data: prospects, loading } = useCollection<Prospect>('prospects');
-    
-    const [sorting, setSorting] = React.useState<SortingState>([{ id: 'date', desc: true }]);
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const { data: prospects, loading } = useCollection<Prospect>('prospects');
 
-    const table = useReactTable({
-        data: prospects,
-        columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-        sorting,
-        columnFilters,
-        },
-    });
+  if (loading) {
+    return <ProspectsSkeleton />;
+  }
 
-    if (loading) {
-        return <ProspectsSkeleton />;
-    }
+  const prospectsByStatus = prospectStatuses.reduce((acc, status) => {
+    acc[status] = prospects.filter(p => p.status === status);
+    return acc;
+  }, {} as Record<Prospect['status'], Prospect[]>);
 
-    return (
-        <div className="w-full">
-            <PageHeader
-                title="Prospección de Ventas"
-                description="Gestiona los potenciales clientes desde el primer contacto hasta el cierre."
-            />
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder="Filtrar por cliente..."
-                    value={(table.getColumn('clientName')?.getFilterValue() as string) ?? ''}
-                    onChange={event => table.getColumn('clientName')?.setFilterValue(event.target.value)}
-                    className="max-w-sm"
-                />
+  return (
+    <div className="w-full">
+      <PageHeader
+        title="Prospección de Ventas"
+        description="Gestiona los potenciales clientes desde el primer contacto hasta el cierre."
+      />
+      <div className="mt-8 flex gap-4 overflow-x-auto pb-4">
+        {prospectStatuses.map(status => (
+          <div key={status} className="flex-shrink-0 w-80">
+            <h2 className="font-semibold px-2 mb-2 tracking-tight">{status} ({prospectsByStatus[status].length})</h2>
+            <div className="space-y-3 p-2 rounded-lg bg-muted/50 h-full min-h-[200px]">
+              {prospectsByStatus[status].map(prospect => (
+                <ProspectCard key={prospect.id} prospect={prospect} />
+              ))}
+               {prospectsByStatus[status].length === 0 && (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    No hay prospectos en este estado.
+                </div>
+               )}
             </div>
-            <div className="rounded-md border">
-                <Table>
-                <TableHeader>
-                    {table.getHeaderGroups().map(headerGroup => (
-                    <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map(header => (
-                        <TableHead key={header.id}>
-                            {header.isPlaceholder
-                            ? null
-                            : flexRender(header.column.columnDef.header, header.getContext())}
-                        </TableHead>
-                        ))}
-                    </TableRow>
-                    ))}
-                </TableHeader>
-                <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map(row => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                        {row.getVisibleCells().map(cell => (
-                            <TableCell key={cell.id}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                        ))}
-                        </TableRow>
-                    ))
-                    ) : (
-                    <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No hay prospectos.
-                        </TableCell>
-                    </TableRow>
-                    )}
-                </TableBody>
-                </Table>
-            </div>
-        </div>
-    );
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -9,7 +9,7 @@ export interface UserProfile {
 
 export interface Prospect {
   id: string;
-  prospectId: string;
+  prospectId?: string; // Es opcional ahora
   clientName: string;
   contactNumber: string;
   email: string;
