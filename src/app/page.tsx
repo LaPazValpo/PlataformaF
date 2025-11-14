@@ -46,19 +46,19 @@ export default function LandingPage() {
           <span className="sr-only">Paz Final</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="#servicios" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Servicios
+          <Link href="/" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Inicio
           </Link>
-          <Link href="#nosotros" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Nosotros
+          <Link href="/blog" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Blog
           </Link>
-          <Link href="#testimonios" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Testimonios
+          <Link href="/contacto" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Contacto
+          </Link>
+          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Intranet
           </Link>
         </nav>
-        <Button asChild className="ml-4">
-          <Link href="/intranet/dashboard">Intranet</Link>
-        </Button>
       </header>
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32">

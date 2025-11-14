@@ -3,12 +3,10 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Boxes,
-  Church,
+  Book,
+  Contact,
+  Home,
   LayoutDashboard,
-  Package,
-  PenSquare,
-  Users,
   PanelLeft,
 } from 'lucide-react';
 import {
@@ -30,11 +28,6 @@ import { Separator } from '@/components/ui/separator';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/intranet/sales', icon: Users, label: 'Sales Performance' },
-  { href: '/intranet/inventory', icon: Boxes, label: 'Inventory' },
-  { href: '/intranet/content', icon: PenSquare, label: 'Content Tool' },
-  { href: '/intranet/services', icon: Package, label: 'Services' },
-  { href: '/intranet/chapel', icon: Church, label: 'Virtual Chapel' },
 ];
 
 function PazFinalLogo() {
