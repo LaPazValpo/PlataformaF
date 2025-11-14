@@ -17,6 +17,7 @@ import ServicePackForm from '@/components/intranet/services/ServicePackForm';
 import IndividualServiceForm from '@/components/intranet/services/IndividualServiceForm';
 import VirtualChapelPlanForm from '@/components/intranet/services/VirtualChapelPlanForm';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SeedDatabaseButton } from '@/components/common/seed-database-button';
 
 function FeatureImage({ feature }: { feature: ServicePackFeature }) {
   const placeholder = PlaceHolderImages.find(p => p.id === feature.image);
@@ -214,9 +215,28 @@ export default function ServicesPage() {
   const { data: virtualChapelPlans, loading: loadingChapel } = useCollection<VirtualChapelPlan>('virtualChapelPlans');
 
   const loading = loadingPacks || loadingIndividual || loadingChapel;
+  const isDataEmpty = !loading && servicePacks.length === 0 && individualServices.length === 0 && virtualChapelPlans.length === 0;
+
 
   if (loading) {
       return <ServicesSkeleton />;
+  }
+
+  if (isDataEmpty) {
+    return (
+        <div className="flex flex-col gap-8 items-center justify-center h-[60vh]">
+            <div className="text-center space-y-4">
+                <PageHeader 
+                    title="Paquetes de Servicios"
+                    description="Parece que aún no has configurado ningún servicio."
+                />
+                <p className="text-muted-foreground">
+                    Haz clic en el botón de abajo para crear las colecciones de servicios y llenarlas con datos de ejemplo.
+                </p>
+                <SeedDatabaseButton />
+            </div>
+        </div>
+    )
   }
 
   return (
