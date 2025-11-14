@@ -58,37 +58,29 @@ export default function LoginPage() {
       // Asignar rol de Administrador si es el superusuario
       if (values.email === 'lapazdecristovalpo@gmail.com') {
         const userRef = doc(db, 'users', user.uid);
-        const adminData = {
-          role: 'Administrador',
-          email: user.email,
-          name: 'Admin Principal',
-          id: user.uid,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
+        
         try {
-          // Intenta actualizar primero, asumiendo que el documento podría existir.
-          await updateDoc(userRef, { role: 'Administrador', updatedAt: new Date().toISOString() });
-        } catch (updateError: any) {
-          // Si falla porque no existe (code: 'not-found'), créalo.
-          if (updateError.code === 'not-found') {
-            await setDoc(userRef, adminData).catch((createError) => {
-              const permissionError = new FirestorePermissionError({
-                path: userRef.path,
-                operation: 'create',
-                requestResourceData: adminData,
-              });
-              errorEmitter.emit('permission-error', permissionError);
-            });
+          // Primero, intenta actualizar el rol. Esto es eficiente si el documento ya existe.
+          await updateDoc(userRef, {
+             role: 'Administrador',
+             updatedAt: new Date().toISOString() 
+          });
+        } catch (error: any) {
+          // Si el documento no existe ('not-found'), lo creamos.
+          if (error.code === 'not-found') {
+            const adminData = {
+              role: 'Administrador',
+              email: user.email,
+              name: 'Admin Principal',
+              id: user.uid,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            };
+            // Usamos setDoc para crear el documento por primera vez.
+            await setDoc(userRef, adminData);
           } else {
-            // Si es otro error (como permisos), emítelo.
-            const permissionError = new FirestorePermissionError({
-              path: userRef.path,
-              operation: 'update',
-              requestResourceData: { role: 'Administrador' },
-            });
-            errorEmitter.emit('permission-error', permissionError);
+            // Si es otro tipo de error (ej. de permisos), lo lanzamos para que sea capturado por el catch principal.
+            throw error;
           }
         }
       }
@@ -100,9 +92,21 @@ export default function LoginPage() {
       router.push('/intranet/dashboard');
 
     } catch (error: any) {
-      console.error("Firebase Auth Error:", error);
+      console.error("Login Error:", error);
       let description = 'Ocurrió un error inesperado.';
-      if (error.code) {
+
+      // Manejo de errores de Firestore (permisos al intentar asignar rol)
+      if (error instanceof FirestorePermissionError || error.name === 'FirestorePermissionError' || (error.code && error.code.startsWith('permission-denied'))) {
+         description = "No se pudo asignar el rol de administrador. Revisa las reglas de seguridad de la colección 'users'.";
+         const permissionError = new FirestorePermissionError({
+            path: `users/${auth.currentUser?.uid}`,
+            operation: 'update', // o 'create'
+            requestResourceData: { role: 'Administrador' },
+         });
+         errorEmitter.emit('permission-error', permissionError);
+      }
+      // Manejo de errores de Auth
+      else if (error.code) {
         switch (error.code) {
           case 'auth/user-not-found':
           case 'auth/wrong-password':
@@ -116,15 +120,15 @@ export default function LoginPage() {
             description = 'Demasiados intentos fallidos. Por favor, intenta de nuevo más tarde.';
             break;
           case 'auth/permission-denied':
-             description = 'Permiso denegado por la configuración de Firebase. Revisa las restricciones de tu API Key en la consola de Google Cloud.';
+             description = 'Permiso denegado por la configuración de Firebase Auth. Revisa las restricciones de tu API Key en Google Cloud.';
              break;
           default:
-            description = `Error: ${error.message}`;
+            description = `Error de autenticación: ${error.message}`;
         }
       }
       toast({
         variant: 'destructive',
-        title: 'Error de autenticación',
+        title: 'Error de Inicio de Sesión',
         description: description,
       });
     }

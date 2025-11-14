@@ -17,27 +17,23 @@ service cloud.firestore {
     // Devuelve el rol del usuario desde su documento en la colección 'users'.
     // IMPORTANTE: Esta función solo se puede usar de forma fiable en reglas "get", "write", "update", "delete".
     // NO FUNCIONARÁ de forma fiable en reglas "list" sin condiciones adicionales.
-    function getRole() {
+    function getUserRole() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
-    // Devuelve true si el usuario tiene un rol específico.
-    function isRole(role) {
-        return isSignedIn() && getRole() == role;
-    }
-    
+    // Devuelve true si el usuario tiene uno de los roles especificados.
     function isOneOfRoles(roles) {
-      return isSignedIn() && getRole() in roles;
+        return isSignedIn() && getUserRole() in roles;
     }
     
     // -- Reglas por Colección --
 
     match /users/{userId} {
       allow get: if isOwner(userId);
-      allow list: if isRole('Administrador');
+      allow list: if isOneOfRoles(['Administrador']);
       // Un usuario puede crear su propio perfil. Un administrador puede actualizar el de otros.
       allow create: if isOwner(userId);
-      allow update: if isOwner(userId) || isRole('Administrador');
+      allow update: if isOwner(userId) || isOneOfRoles(['Administrador']);
     }
     
     match /prospects/{prospectId} {
@@ -62,40 +58,40 @@ service cloud.firestore {
     
     match /sellers/{sellerId} {
       allow read: if isSignedIn();
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
     
-    // --- Colecciones Públicas y de Contenido ---
+    // --- Colecciones Públicas y de Contenido (solo editables por Admin) ---
 
     match /servicePacks/{packId} {
       allow read: if true;
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
     
     match /virtualChapelPlans/{planId} {
       allow read: if true;
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
     
     match /individualServices/{serviceId} {
       allow read: if true;
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
     
     match /virtualTombs/{tombId} {
       allow read: if true;
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
 
     match /testimonials/{testimonialId} {
       allow read: if true;
-      allow write: if isRole('Administrador');
+      allow write: if isOneOfRoles(['Administrador']);
     }
 
     // --- Colecciones solo para Administradores ---
     
     match /inventory/{itemId} {
-      allow read, write: if isRole('Administrador');
+      allow read, write: if isOneOfRoles(['Administrador']);
     }
   }
 }
