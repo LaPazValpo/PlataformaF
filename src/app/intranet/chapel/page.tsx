@@ -65,7 +65,7 @@ function TombDialog({ tombId }: { tombId: string }) {
                   <CarouselItem key={index}>
                     <Image
                       src={img.imageUrl}
-                      alt={`${tomb.name} gallery image ${index + 1}`}
+                      alt={`${tomb.name} foto de galería ${index + 1}`}
                       width={600}
                       height={400}
                       className="rounded-lg object-cover w-full aspect-video"

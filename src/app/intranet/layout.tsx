@@ -8,6 +8,12 @@ import {
   Home,
   LayoutDashboard,
   PanelLeft,
+  Package,
+  Users,
+  HandCoins,
+  Warehouse,
+  Sparkles,
+  Church,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -28,6 +34,11 @@ import { Separator } from '@/components/ui/separator';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/intranet/sales', icon: HandCoins, label: 'Ventas' },
+  { href: '/intranet/services', icon: Package, label: 'Servicios' },
+  { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
+  { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
+  { href: '/intranet/chapel', icon: Church, label: 'Capilla Virtual' },
 ];
 
 function PazFinalLogo() {
