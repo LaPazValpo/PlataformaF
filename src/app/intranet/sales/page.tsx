@@ -1,50 +1,240 @@
 'use client';
 
 import * as React from 'react';
-import {
-  ArrowUpDown,
-  ChevronDown,
-} from 'lucide-react';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
-
-import type { Sale, Seller } from '@/lib/types';
-import { useCollection } from '@/firebase';
+import type { Prospect, Proposal, Sale } from '@/lib/types';
+import { useCollection, useUser, useFirestore } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Hand, Mail, Phone, FileText, CheckCircle, XCircle } from 'lucide-react';
+import { doc, updateDoc, writeBatch } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import ProposalForm from '@/components/intranet/proposals/ProposalForm';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
-type SellerPerformance = Seller & {
-  totalSalesValue: number;
-  commissionEarned: number;
-};
+function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: Proposal[] }) {
+  const { user, userProfile } = useUser();
+  const db = useFirestore();
+  const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = React.useState(false);
+  const [isCreateProposalOpen, setIsCreateProposalOpen] = React.useState(false);
+
+  const hasProposal = React.useMemo(() => proposals.some(p => p.prospectId === prospect.id), [proposals, prospect.id]);
+
+  const handleUpdateProspect = async (status: Prospect['status'], sellerId: string | null, sellerName: string) => {
+    if (!db) return;
+    setIsUpdating(true);
+
+    const prospectRef = doc(db, 'prospects', prospect.id);
+    const updatedData = {
+        sellerId,
+        sellerName,
+        status,
+        updatedAt: new Date().toISOString()
+    };
+
+    updateDoc(prospectRef, updatedData)
+      .then(() => {
+        toast({
+          title: 'Prospecto Actualizado',
+          description: `${prospect.clientName} ahora está en estado: ${status}.`,
+        });
+      })
+      .catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: prospectRef.path,
+            operation: 'update',
+            requestResourceData: updatedData,
+         });
+         errorEmitter.emit('permission-error', permissionError);
+         toast({
+            variant: 'destructive',
+            title: 'Error al actualizar prospecto',
+            description: 'No tienes permisos para realizar esta acción.',
+         });
+      })
+      .finally(() => {
+        setIsUpdating(false);
+      });
+  };
+
+  const handleTakeProspect = () => {
+      if (!user || !userProfile) return;
+      handleUpdateProspect('Contactado', user.uid, userProfile.name);
+  }
+
+  const handleCloseSale = async (status: 'Venta Ganada' | 'Venta Perdida') => {
+      if (!user || !userProfile || !db) return;
+
+      const now = new Date();
+      const batch = writeBatch(db);
+
+      // 1. Update prospect status
+      const prospectRef = doc(db, 'prospects', prospect.id);
+      batch.update(prospectRef, { status, updatedAt: now.toISOString() });
+
+      // 2. If won, create a sale document
+      if (status === 'Venta Ganada') {
+          const proposal = proposals.find(p => p.prospectId === prospect.id);
+          const newSale: Omit<Sale, 'id'> = {
+              clientName: prospect.clientName,
+              services: proposal?.services ?? [],
+              seller: prospect.sellerName,
+              date: now.toISOString(),
+              status: 'Pendiente de Pago',
+              totalAmount: proposal?.totalAmount ?? 0,
+              contactNumber: prospect.contactNumber,
+              createdAt: now.toISOString(),
+              updatedAt: now.toISOString(),
+          };
+          const salesCol = doc(db, 'sales', `SALE-${now.getTime()}`);
+          batch.set(salesCol, newSale);
+      }
+
+      setIsUpdating(true);
+      try {
+          await batch.commit();
+          toast({
+              title: 'Venta Cerrada',
+              description: `El prospecto ${prospect.clientName} ha sido marcado como ${status}.`
+          });
+      } catch (serverError) {
+          const permissionError = new FirestorePermissionError({
+              path: `prospects/${prospect.id} or sales`,
+              operation: 'update',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          toast({
+              variant: 'destructive',
+              title: 'Error al cerrar la venta.',
+              description: 'No tienes los permisos necesarios.'
+          });
+      } finally {
+          setIsUpdating(false);
+      }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{prospect.clientName}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <Phone className="h-4 w-4" />
+          <span>{prospect.contactNumber}</span>
+        </div>
+        {prospect.email && (
+            <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                <span>{prospect.email}</span>
+            </div>
+        )}
+        {prospect.status !== 'Nuevo' && (
+            <div className="text-xs pt-2">
+                Asignado a: <span className="font-semibold">{prospect.sellerName}</span>
+            </div>
+        )}
+      </CardContent>
+      <CardFooter className="flex-col items-stretch gap-2">
+          {prospect.status === 'Nuevo' && (
+             <Button onClick={handleTakeProspect} disabled={isUpdating} className="w-full">
+                <Hand className="mr-2" />
+                {isUpdating ? 'Asignando...' : 'Tomar Venta'}
+            </Button>
+          )}
+
+          {prospect.status === 'Contactado' && !hasProposal && (
+             <Dialog open={isCreateProposalOpen} onOpenChange={setIsCreateProposalOpen}>
+                <DialogTrigger asChild>
+                    <Button className="w-full">
+                        <FileText className="mr-2" />
+                        Crear Propuesta
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Nueva Propuesta para {prospect.clientName}</DialogTitle>
+                    </DialogHeader>
+                    <ProposalForm
+                        mode="create"
+                        prospectId={prospect.id}
+                        initialData={{
+                            clientName: prospect.clientName,
+                            contactNumber: prospect.contactNumber,
+                            email: prospect.email
+                        }}
+                        onSuccess={() => setIsCreateProposalOpen(false)}
+                    />
+                </DialogContent>
+            </Dialog>
+          )}
+          
+          {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full">Cerrar Venta</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => handleCloseSale('Venta Ganada')}>
+                  <CheckCircle className="mr-2 text-green-500" /> Venta Ganada
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleCloseSale('Venta Perdida')}>
+                  <XCircle className="mr-2 text-red-500" /> Venta Perdida
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+function SalesSkeleton() {
+  return (
+    <div className="w-full">
+      <PageHeader
+        title="Gestión de Ventas"
+        description="Unifica y visualiza todo el proceso de ventas, desde el prospecto hasta el cierre."
+      />
+      <div className="mt-8 space-y-8">
+        {[...Array(2)].map((_, i) => (
+          <section key={i}>
+            <Skeleton className="h-8 w-48 mb-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {[...Array(3)].map((_, j) => (
+                <Card key={j}>
+                  <CardHeader>
+                    <Skeleton className="h-5 w-3/4" />
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                  </CardContent>
+                  <CardFooter>
+                    <Skeleton className="h-10 w-full" />
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', {
@@ -53,260 +243,117 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-export const columns: ColumnDef<SellerPerformance>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Vendedor',
-    cell: ({ row }) => {
-      const seller = row.original;
-      return (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={`https://picsum.photos/seed/${seller.id}/40/40`} />
-            <AvatarFallback>{seller.initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-medium">{seller.name}</span>
-            <span className="text-sm text-muted-foreground">{seller.email}</span>
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'sales',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Ventas (Unidades)
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-center">{row.getValue('sales')}</div>,
-  },
-  {
-    accessorKey: 'totalSalesValue',
-    header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="text-right w-full"
-        >
-          Ventas (Valor)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('totalSalesValue'))}</div>,
-  },
-  {
-    accessorKey: 'conversionRate',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Tasa de Conversión
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-center">{row.getValue('conversionRate')}%</div>,
-  },
-  {
-    accessorKey: 'commissionEarned',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Comisión Ganada
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('commissionEarned'))}</div>,
-  },
-  {
-    accessorKey: 'status',
-    header: 'Estado',
-    cell: ({ row }) => (
-      <div className="capitalize">
-        <Badge variant={row.getValue('status') === 'Activo' ? 'default' : 'secondary'}>
-          {row.getValue('status') as string}
-        </Badge>
-      </div>
-    ),
-  },
-];
 
-function SalesPerformanceSkeleton() {
-    return (
-        <div className="w-full">
-            <PageHeader
-                title="Gestión de Vendedores"
-                description="Supervisa el equipo de ventas, su rendimiento y comisiones."
-            />
-            <div className="flex items-center py-4">
-                <Skeleton className="h-10 w-full max-w-sm" />
-                <Skeleton className="h-10 w-24 ml-auto" />
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {[...Array(6)].map((_, i) => (
-                                <TableHead key={i}>
-                                    <Skeleton className="h-5 w-full" />
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {[...Array(5)].map((_, i) => (
-                            <TableRow key={i}>
-                                {[...Array(6)].map((_, j) => (
-                                    <TableCell key={j}>
-                                        <Skeleton className="h-5 w-full" />
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </div>
-        </div>
-    )
-}
-
-export default function SalesPerformancePage() {
+export default function SalesPage() {
+  const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
+  const { data: proposals, loading: loadingProposals } = useCollection<Proposal>('proposals');
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
-  const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
+
+  const loading = loadingProspects || loadingProposals || loadingSales;
+
+  const activeProspects = React.useMemo(() => 
+      prospects.filter(p => p.status === 'Nuevo' || p.status === 'Contactado' || p.status === 'En Seguimiento'),
+      [prospects]
+  );
   
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  const sellerPerformanceData = React.useMemo(() => {
-    if (loadingSellers || loadingSales || !sellers || !sales) return [];
-    
-    return sellers.map(seller => {
-      const sellerSales = sales.filter(sale => sale.seller === seller.name);
-      const totalSalesValue = sellerSales.reduce((acc, sale) => acc + sale.totalAmount, 0);
-      const commissionEarned = totalSalesValue * (seller.commission / 100);
-
-      return {
-        ...seller,
-        sales: sellerSales.length, // Update sales count from actual sales
-        totalSalesValue,
-        commissionEarned,
-      };
-    });
-
-  }, [sellers, sales, loadingSellers, loadingSales]);
-
-  const table = useReactTable({
-    data: sellerPerformanceData,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
-
-  if (loadingSales || loadingSellers) {
-    return <SalesPerformanceSkeleton />;
+  if (loading) {
+    return <SalesSkeleton />;
   }
-
+  
   return (
     <div className="w-full">
       <PageHeader
-        title="Gestión de Vendedores"
-        description="Supervisa el equipo de ventas, su rendimiento y comisiones."
+        title="Gestión de Ventas"
+        description="Unifica y visualiza todo el proceso de ventas, desde el prospecto hasta el cierre."
       />
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filtrar por vendedor..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={event => table.getColumn('name')?.setFilterValue(event.target.value)}
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columnas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={value => column.toggleVisibility(!!value)}
-                >
-                  {column.id === 'name' ? 'Vendedor' :
-                   column.id === 'sales' ? 'Ventas (Unidades)' :
-                   column.id === 'totalSalesValue' ? 'Ventas (Valor)' :
-                   column.id === 'conversionRate' ? 'Tasa de Conversión' :
-                   column.id === 'commissionEarned' ? 'Comisión Ganada' :
-                   column.id === 'status' ? 'Estado' : column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
+      <div className="mt-8 space-y-12">
+        {/* PROSPECCIÓN */}
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">Prospección ({activeProspects.length})</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {activeProspects.map(prospect => (
+              <ProspectCard key={prospect.id} prospect={prospect} proposals={proposals} />
             ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Sin resultados.
-                </TableCell>
-              </TableRow>
+            {activeProspects.length === 0 && (
+                <div className="col-span-full flex items-center justify-center h-40 text-sm text-muted-foreground bg-muted/50 rounded-lg">
+                    No hay prospectos activos.
+                </div>
             )}
-          </TableBody>
-        </Table>
+          </div>
+        </section>
+
+        {/* PROPUESTAS */}
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">Propuestas Enviadas ({proposals.length})</h2>
+          <Card>
+            <CardContent className="p-0">
+               <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead className="text-muted-foreground">
+                        <tr className="border-b">
+                        <th className="py-2 px-4 text-left">Fecha</th>
+                        <th className="py-2 px-4 text-left">Cliente</th>
+                        <th className="py-2 px-4 text-left">Vendedor</th>
+                        <th className="py-2 px-4 text-left">Estado</th>
+                        <th className="py-2 px-4 text-right">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {proposals.map(p => (
+                            <tr key={p.id} className="border-b hover:bg-muted/50">
+                                <td className="py-2 px-4">{p.date ? format(new Date(p.date), 'dd MMM yyyy', { locale: es }) : '-'}</td>
+                                <td className="py-2 px-4">{p.clientName}</td>
+                                <td className="py-2 px-4">{p.sellerName}</td>
+                                <td className="py-2 px-4"><Badge variant={p.status === 'Propuesta Aceptada' ? 'default' : 'secondary'}>{p.status}</Badge></td>
+                                <td className="py-2 px-4 text-right">{p.totalAmount ? formatCurrency(p.totalAmount) : '-'}</td>
+                            </tr>
+                        ))}
+                        {proposals.length === 0 && (
+                            <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No hay propuestas.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+               </div>
+            </CardContent>
+          </Card>
+        </section>
+        
+        {/* VENTAS CERRADAS */}
+        <section>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">Ventas Cerradas ({sales.length})</h2>
+          <Card>
+            <CardContent className="p-0">
+               <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead className="text-muted-foreground">
+                        <tr className="border-b">
+                        <th className="py-2 px-4 text-left">Fecha Cierre</th>
+                        <th className="py-2 px-4 text-left">Cliente</th>
+                        <th className="py-2 px-4 text-left">Vendedor</th>
+                        <th className="py-2 px-4 text-right">Monto Final</th>
+                        <th className="py-2 px-4 text-left">Estado Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                         {sales.map(s => (
+                            <tr key={s.id} className="border-b hover:bg-muted/50">
+                                <td className="py-2 px-4">{s.date ? format(new Date(s.date), 'dd MMM yyyy', { locale: es }) : '-'}</td>
+                                <td className="py-2 px-4">{s.clientName}</td>
+                                <td className="py-2 px-4">{s.seller}</td>
+                                <td className="py-2 px-4 text-right">{formatCurrency(s.totalAmount)}</td>
+                                <td className="py-2 px-4"><Badge variant={s.status === 'Pagado' ? 'default' : 'secondary'}>{s.status}</Badge></td>
+                            </tr>
+                        ))}
+                        {sales.length === 0 && (
+                             <tr><td colSpan={5} className="p-8 text-center text-muted-foreground">No hay ventas cerradas.</td></tr>
+                        )}
+                    </tbody>
+                </table>
+               </div>
+            </CardContent>
+          </Card>
+        </section>
+
       </div>
     </div>
   );

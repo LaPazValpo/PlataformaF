@@ -34,11 +34,9 @@ import { useUser } from '@/firebase';
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { type: 'divider', label: 'Ventas' },
-  { href: '/intranet/prospects', icon: Users, label: 'Prospectos' },
-  { href: '/intranet/proposals', icon: FileText, label: 'Propuestas' },
-  { href: '/intranet/completed-sales', icon: HandCoins, label: 'Ventas' },
+  { href: '/intranet/sales', icon: HandCoins, label: 'Ventas' },
   { type: 'divider', label: 'Gestión' },
-  { href: '/intranet/sales', icon: Briefcase, label: 'Vendedores' },
+  { href: '/intranet/vendedores', icon: Briefcase, label: 'Vendedores' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
   { type: 'divider', label: 'Contenido' },
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
