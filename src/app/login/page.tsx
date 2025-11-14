@@ -40,6 +40,15 @@ export default function LoginPage() {
   });
 
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
+    if (!auth || !db) {
+        toast({
+            variant: 'destructive',
+            title: 'Error de Inicialización',
+            description: 'Los servicios de Firebase no están disponibles. Intenta recargar la página.',
+        });
+        return;
+    }
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
@@ -61,7 +70,7 @@ export default function LoginPage() {
       router.push('/intranet/dashboard');
     } catch (error: any) {
       console.error("Firebase Auth Error:", error);
-      let description = 'Credenciales incorrectas o el usuario no existe.';
+      let description = 'Ocurrió un error inesperado.';
       if (error.code) {
         switch (error.code) {
           case 'auth/user-not-found':
@@ -70,7 +79,10 @@ export default function LoginPage() {
             description = 'El correo electrónico o la contraseña son incorrectos.';
             break;
           case 'auth/network-request-failed':
-            description = 'Error de red. Por favor, revisa tu conexión a internet.';
+            description = 'Error de red. Por favor, revisa tu conexión a internet y la configuración de la API Key.';
+            break;
+          case 'auth/too-many-requests':
+            description = 'Demasiados intentos fallidos. Por favor, intenta de nuevo más tarde.';
             break;
           default:
             description = `Error: ${error.message}`;
