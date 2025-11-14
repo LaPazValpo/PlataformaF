@@ -20,28 +20,27 @@ service cloud.firestore {
     
     // Prospectos
     match /prospects/{prospectId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
     
     // Propuestas
     match /proposals/{proposalId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
     
     // Ventas
     match /sales/{saleId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
     
     // Clientes
     match /clients/{clientId} {
-      allow read, write: if isSignedIn();
+      allow read, write: if true;
     }
     
     // Vendedores
     match /sellers/{sellerId} {
-      allow read: if isSignedIn();
-      allow write: if hasRole('Administrador');
+      allow read, write: if true;
     }
     
     // Paquetes de Servicios (público para lectura)
