@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Lock, Menu } from 'lucide-react';
+import { Lock, Menu, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -88,6 +88,14 @@ const Header = () => {
                     <Lock className="mr-2 h-4 w-4" />
                     Intranet
                   </Link>
+                  <Link
+                    href="/test-auth"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className='text-lg text-muted-foreground hover:text-primary flex items-center'
+                  >
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    Test Auth
+                  </Link>
               </nav>
             </SheetContent>
           </Sheet>
@@ -167,6 +175,11 @@ const Header = () => {
             <Button variant="outline" size="sm" asChild>
               <Link href="/login">
                 <Lock className="mr-2 h-4 w-4" /> Intranet
+              </Link>
+            </Button>
+             <Button variant="destructive" size="sm" asChild>
+              <Link href="/test-auth">
+                <ShieldAlert className="mr-2 h-4 w-4" /> Test Auth
               </Link>
             </Button>
         </nav>

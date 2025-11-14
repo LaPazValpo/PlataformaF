@@ -63,15 +63,17 @@ export default function LoginPage() {
           email: user.email,
           name: 'Admin Principal',
           id: user.uid,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         try {
           // Intenta actualizar primero, asumiendo que el documento podría existir.
-          await updateDoc(userRef, { role: 'Administrador' });
+          await updateDoc(userRef, { role: 'Administrador', updatedAt: new Date().toISOString() });
         } catch (updateError: any) {
           // Si falla porque no existe (code: 'not-found'), créalo.
           if (updateError.code === 'not-found') {
-            setDoc(userRef, adminData, { merge: true }).catch((createError) => {
+            await setDoc(userRef, adminData).catch((createError) => {
               const permissionError = new FirestorePermissionError({
                 path: userRef.path,
                 operation: 'create',

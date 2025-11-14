@@ -4,20 +4,30 @@ service cloud.firestore {
     
     // -- Funciones de Ayuda de Seguridad --
     
+    // Devuelve true si el usuario ha iniciado sesión.
     function isSignedIn() {
       return request.auth != null;
     }
     
+    // Devuelve true si el usuario que hace la solicitud es el dueño del documento.
     function isOwner(userId) {
         return request.auth.uid == userId;
     }
 
+    // Devuelve el rol del usuario desde su documento en la colección 'users'.
+    // IMPORTANTE: Esta función solo se puede usar de forma fiable en reglas "get", "write", "update", "delete".
+    // NO FUNCIONARÁ de forma fiable en reglas "list" sin condiciones adicionales.
+    function getRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Devuelve true si el usuario tiene un rol específico.
     function isRole(role) {
-      return isSignedIn() && request.auth.token.role == role;
+        return isSignedIn() && getRole() == role;
     }
     
     function isOneOfRoles(roles) {
-        return isSignedIn() && request.auth.token.role in roles;
+      return isSignedIn() && getRole() in roles;
     }
     
     // -- Reglas por Colección --
@@ -25,7 +35,9 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId);
       allow list: if isRole('Administrador');
-      allow create, update: if isOwner(userId);
+      // Un usuario puede crear su propio perfil. Un administrador puede actualizar el de otros.
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isRole('Administrador');
     }
     
     match /prospects/{prospectId} {
@@ -34,6 +46,7 @@ service cloud.firestore {
     }
     
     match /proposals/{proposalId} {
+      // La propuesta es pública para el cliente, pero solo editable por el personal.
       allow read: if true;
       allow write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
