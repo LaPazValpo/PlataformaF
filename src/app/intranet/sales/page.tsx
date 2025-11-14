@@ -7,13 +7,14 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle, Trash2 } from 'lucide-react';
+import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle, Trash2, Info } from 'lucide-react';
 import { doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProposalForm from '@/components/intranet/proposals/ProposalForm';
+import ProposalDetails from '@/components/intranet/proposals/ProposalDetails';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -313,6 +314,9 @@ export default function SalesPage() {
   const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
   const { data: proposals, loading: loadingProposals } = useCollection<Proposal>('proposals');
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
+  
+  const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+  const [selectedProposal, setSelectedProposal] = React.useState<Proposal | null>(null);
 
   const loading = loadingProspects || loadingProposals || loadingSales;
 
@@ -343,6 +347,11 @@ export default function SalesPage() {
     const message = encodeURIComponent(`Hola ${proposal.clientName},\n\nTe envío la propuesta de servicios funerarios que conversamos. Puedes revisarla en el siguiente enlace:\n\n${proposalUrl}\n\nQuedo a tu disposición para cualquier duda.\n\nSaludos,\n${proposal.sellerName}`);
     window.open(`https://wa.me/${cleanPhoneNumber}?text=${message}`, '_blank');
   };
+
+  const handleOpenDetails = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    setIsDetailsOpen(true);
+  }
   
   return (
     <div className="w-full">
@@ -393,11 +402,14 @@ export default function SalesPage() {
                                 <td className="py-2 px-4 text-right">{p.totalAmount ? formatCurrency(p.totalAmount) : '-'}</td>
                                 <td className="py-2 px-4 text-center">
                                     <div className='flex items-center justify-center'>
+                                        <Button variant="ghost" size="icon" onClick={() => handleSendWhatsApp(p)} title="Enviar por WhatsApp">
+                                            <MessageCircle className="h-4 w-4 text-green-500" />
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => openProposalLink(p.id)} title="Ver Propuesta Pública">
                                             <Eye className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleSendWhatsApp(p)} title="Enviar por WhatsApp">
-                                            <MessageCircle className="h-4 w-4 text-green-500" />
+                                         <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(p)} title="Ver Detalles Internos">
+                                            <Info className="h-4 w-4" />
                                         </Button>
                                     </div>
                                 </td>
@@ -448,8 +460,16 @@ export default function SalesPage() {
             </CardContent>
           </Card>
         </section>
-
       </div>
+
+       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Detalles de la Propuesta</DialogTitle>
+                </DialogHeader>
+                {selectedProposal && <ProposalDetails proposalId={selectedProposal.id} />}
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
