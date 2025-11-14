@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Edit, MoreHorizontal } from 'lucide-react';
+import { Edit, MoreHorizontal, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,7 +83,10 @@ function InventorySkeleton() {
             />
             <Card>
                 <CardHeader>
+                  <div className="flex justify-between items-center">
                     <CardTitle>Items de Inventario</CardTitle>
+                    <Skeleton className="h-10 w-32" />
+                  </div>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -121,6 +124,7 @@ export default function InventoryPage() {
   const { data: inventory, loading } = useCollection<InventoryItem>('inventory');
   const { userProfile } = useUser();
   const isAdmin = userProfile?.role === 'Administrador';
+  const [isCreateOpen, setIsCreateOpen] = React.useState(false);
 
   if (loading) {
     return <InventorySkeleton />;
@@ -134,7 +138,25 @@ export default function InventoryPage() {
       />
       <Card>
         <CardHeader>
-          <CardTitle>Items de Inventario</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Items de Inventario</CardTitle>
+            {isAdmin && (
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                  <DialogTrigger asChild>
+                      <Button>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Crear Item
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                      <DialogHeader>
+                          <DialogTitle>Nuevo Item de Inventario</DialogTitle>
+                      </DialogHeader>
+                      <InventoryForm mode="create" onSuccess={() => setIsCreateOpen(false)} />
+                  </DialogContent>
+              </Dialog>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useFirestore } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,34 +40,52 @@ export default function InventoryForm({
     setForm((p) => ({ ...p, [key]: value }));
 
   const handleSubmit = async () => {
-    if (!db || (mode === 'edit' && !itemId)) return;
-    setLoading(true);
+    if (!db) return;
+    if (mode === 'edit' && !itemId) return;
 
-    const payload = {
-        ...form,
-        quantity: Number(form.quantity),
-        updatedAt: new Date().toISOString(),
-    };
+    setLoading(true);
+    
+    const now = new Date().toISOString();
 
     try {
       if (mode === 'edit') {
+        const payload = {
+          ...form,
+          quantity: Number(form.quantity),
+          updatedAt: now,
+        };
         const docRef = doc(db, 'inventory', itemId!);
         await updateDoc(docRef, payload);
         toast({ title: 'Item actualizado con éxito' });
+
+      } else { // create mode
+        const newId = `INV-${Date.now()}`;
+        const payload: InventoryItem = {
+            id: newId,
+            ...form,
+            quantity: Number(form.quantity),
+            createdAt: now,
+            updatedAt: now,
+        };
+        const docRef = doc(db, 'inventory', newId);
+        await setDoc(docRef, payload);
+        toast({ title: 'Item de inventario creado con éxito' });
       }
+
       onSuccess?.();
+
     } catch (e: any) {
       console.error('Error submitting form: ', e);
       const permissionError = new FirestorePermissionError({
-          path: `inventory/${itemId}`,
-          operation: 'update',
-          requestResourceData: payload,
+          path: mode === 'create' ? `inventory/NEW_ID` : `inventory/${itemId}`,
+          operation: mode,
+          requestResourceData: form,
         });
       errorEmitter.emit('permission-error', permissionError);
       toast({
         variant: 'destructive',
         title: 'Error de Permiso',
-        description: 'No tienes permisos para editar el inventario.',
+        description: 'No tienes permisos para realizar esta acción.',
       });
     } finally {
       setLoading(false);
@@ -94,10 +112,10 @@ export default function InventoryForm({
             <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
         </div>
       </div>
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-2 mt-6">
         <Button variant="outline" onClick={onSuccess}>Cancelar</Button>
         <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Guardando...' : 'Guardar Cambios'}
+          {loading ? 'Guardando...' : mode === 'create' ? 'Crear Item' : 'Guardar Cambios'}
         </Button>
       </div>
     </div>
