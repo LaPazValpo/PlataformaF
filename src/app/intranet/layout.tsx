@@ -132,7 +132,7 @@ function AppSidebar() {
       </SidebarContent>
       <Separator className="my-2 bg-sidebar-border" />
       <SidebarFooter>
-        <div className="flex items-center justify-between p-2">
+        <div className="flex flex-col gap-2 p-2">
             <div className="flex items-center gap-3">
               <Avatar className="h-9 w-9">
                 <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/admin/100/100`} />
@@ -144,13 +144,13 @@ function AppSidebar() {
               </div>
             </div>
             <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              variant="outline"
+              size="sm"
+              className="w-full justify-start text-sidebar-foreground/70 hover:text-sidebar-foreground"
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4" />
-              <span className="sr-only">Cerrar sesión</span>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Cerrar sesión</span>
             </Button>
         </div>
       </SidebarFooter>
