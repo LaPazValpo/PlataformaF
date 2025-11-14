@@ -69,7 +69,7 @@ function ProposalPageSkeleton() {
                              <CardContent>
                                 <Skeleton className="h-4 w-24 mb-2" />
                                 <div className="space-y-1 columns-2">
-                                  {[...Array(4)].map(i => <Skeleton key={i} className="h-5 w-full" />)}
+                                  {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
                                 </div>
                              </CardContent>
                              <CardFooter className="bg-slate-100 p-4 flex justify-end">
