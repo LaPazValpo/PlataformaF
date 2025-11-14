@@ -1,23 +1,23 @@
 'use client';
 
 import { useFirestore, useUser } from '@/firebase';
-import {
-  addDoc,
-  collection,
-  doc,
-  updateDoc,
-} from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { Proposal } from '@/lib/types';
-
 
 type FormMode = 'create' | 'edit';
 
@@ -27,7 +27,11 @@ type ProposalInput = {
   sellerId?: string | null;
   sellerName: string;
   date: string; // ISO
-  status: 'Borrador' | 'Propuesta Enviada' | 'Propuesta Aceptada' | 'Propuesta Rechazada';
+  status:
+    | 'Borrador'
+    | 'Propuesta Enviada'
+    | 'Propuesta Aceptada'
+    | 'Propuesta Rechazada';
   totalAmount?: number;
   contactNumber?: string;
   email?: string;
@@ -37,15 +41,17 @@ type ProposalInput = {
 export default function ProposalForm({
   mode,
   proposalId,
+  prospectId,
   initialData,
   onSuccess,
 }: {
   mode: FormMode;
   proposalId?: string;
+  prospectId?: string; // ID del prospecto para vincular la propuesta
   initialData?: any;
   onSuccess?: () => void;
 }) {
-  const { firestore } = useFirestore();
+  const db = useFirestore();
   const { user, userProfile } = useUser();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -65,11 +71,11 @@ export default function ProposalForm({
   useEffect(() => {
     // Auto-fill seller info on create mode
     if (mode === 'create' && user && userProfile) {
-        setForm(p => ({
-            ...p,
-            sellerId: user.uid,
-            sellerName: userProfile.name,
-        }));
+      setForm((p) => ({
+        ...p,
+        sellerId: user.uid,
+        sellerName: userProfile.name,
+      }));
     }
   }, [mode, user, userProfile]);
 
@@ -77,56 +83,66 @@ export default function ProposalForm({
     setForm((p) => ({ ...p, [key]: value }));
 
   const handleSubmit = async () => {
-    if (!firestore) return;
+    if (!db) return;
     setLoading(true);
-    
+
     const payload: Omit<Proposal, 'id'> = {
-        prospectId: initialData?.prospectId ?? null,
-        clientName: form.clientName.trim(),
-        services: form.servicesCsv
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
-        sellerId: form.sellerId ?? null,
-        sellerName: form.sellerName.trim(),
-        date: form.date,
-        status: form.status,
-        totalAmount: form.totalAmount ? Number(form.totalAmount) : 0,
-        contactNumber: form.contactNumber?.trim() || '',
-        email: form.email?.trim() || '',
-        notes: form.notes?.trim() || '',
-        createdAt: mode === 'create' ? new Date().toISOString() : initialData?.createdAt ?? new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
+      prospectId: prospectId ?? initialData?.prospectId ?? null, // Usar prospectId directamente
+      clientName: form.clientName.trim(),
+      services: form.servicesCsv
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+      sellerId: form.sellerId ?? null,
+      sellerName: form.sellerName.trim(),
+      date: form.date,
+      status: form.status,
+      totalAmount: form.totalAmount ? Number(form.totalAmount) : 0,
+      contactNumber: form.contactNumber?.trim() || '',
+      email: form.email?.trim() || '',
+      notes: form.notes?.trim() || '',
+      createdAt:
+        mode === 'create'
+          ? new Date().toISOString()
+          : initialData?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
 
     try {
       if (mode === 'create') {
-        const collectionRef = collection(firestore, 'proposals');
-        addDoc(collectionRef, payload)
-          .then(() => {
-            toast({ title: 'Propuesta creada con éxito' });
-            onSuccess?.();
-          })
-          .catch((serverError) => {
-             const permissionError = new FirestorePermissionError({ path: 'proposals', operation: 'create', requestResourceData: payload });
-             errorEmitter.emit('permission-error', permissionError);
-          });
+        const collectionRef = collection(db, 'proposals');
+        await addDoc(collectionRef, payload);
+        toast({ title: 'Propuesta creada con éxito' });
+        onSuccess?.();
       } else {
         if (!proposalId) throw new Error('proposalId requerido para editar');
-        const docRef = doc(firestore, 'proposals', proposalId);
-        updateDoc(docRef, payload)
-          .then(() => {
-             toast({ title: 'Propuesta actualizada con éxito' });
-             onSuccess?.();
-          })
-          .catch((serverError) => {
-             const permissionError = new FirestorePermissionError({ path: docRef.path, operation: 'update', requestResourceData: payload });
-             errorEmitter.emit('permission-error', permissionError);
-          });
+        const docRef = doc(db, 'proposals', proposalId);
+        await updateDoc(docRef, payload);
+        toast({ title: 'Propuesta actualizada con éxito' });
+        onSuccess?.();
       }
-    } catch (e) {
-       console.error("Error submitting form: ", e);
-       toast({ variant: 'destructive', title: 'Error inesperado', description: 'Hubo un problema al guardar los datos.'})
+    } catch (e: any) {
+      const isPermissionError = e.code === 'permission-denied';
+      if (isPermissionError) {
+        const permissionError = new FirestorePermissionError({
+          path: mode === 'create' ? 'proposals' : `proposals/${proposalId}`,
+          operation: mode === 'create' ? 'create' : 'update',
+          requestResourceData: payload,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        toast({
+          variant: 'destructive',
+          title: 'Error de Permiso',
+          description: 'No tienes permisos para realizar esta acción.',
+        });
+      } else {
+        console.error('Error submitting form: ', e);
+        toast({
+          variant: 'destructive',
+          title: 'Error inesperado',
+          description: 'Hubo un problema al guardar los datos.',
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -182,8 +198,12 @@ export default function ProposalForm({
             <SelectContent>
               <SelectItem value="Borrador">Borrador</SelectItem>
               <SelectItem value="Propuesta Enviada">Propuesta Enviada</SelectItem>
-              <SelectItem value="Propuesta Aceptada">Propuesta Aceptada</SelectItem>
-              <SelectItem value="Propuesta Rechazada">Propuesta Rechazada</SelectItem>
+              <SelectItem value="Propuesta Aceptada">
+                Propuesta Aceptada
+              </SelectItem>
+              <SelectItem value="Propuesta Rechazada">
+                Propuesta Rechazada
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -192,7 +212,12 @@ export default function ProposalForm({
           <Input
             type="number"
             value={form.totalAmount ?? ''}
-            onChange={(e) => handleChange('totalAmount', e.target.value ? Number(e.target.value) : undefined)}
+            onChange={(e) =>
+              handleChange(
+                'totalAmount',
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
             placeholder="1450000"
           />
         </div>
@@ -226,7 +251,11 @@ export default function ProposalForm({
 
       <div className="flex justify-end gap-2">
         <Button variant="default" onClick={handleSubmit} disabled={loading}>
-          {loading ? 'Guardando...' : mode === 'create' ? 'Crear Propuesta' : 'Guardar Cambios'}
+          {loading
+            ? 'Guardando...'
+            : mode === 'create'
+            ? 'Crear Propuesta'
+            : 'Guardar Cambios'}
         </Button>
       </div>
     </div>
