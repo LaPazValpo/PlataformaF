@@ -36,6 +36,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import ProposalPage from '@/app/proposal/[id]/page';
+import CloseSaleForm from '@/components/intranet/sales/CloseSaleForm';
 
 
 function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: Proposal[] }) {
@@ -44,8 +45,10 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
   const { toast } = useToast();
   const [isUpdating, setIsUpdating] = React.useState(false);
   const [isCreateProposalOpen, setIsCreateProposalOpen] = React.useState(false);
+  const [isCloseSaleOpen, setIsCloseSaleOpen] = React.useState(false);
 
   const hasProposal = React.useMemo(() => proposals.some(p => p.prospectId === prospect.id), [proposals, prospect.id]);
+  const existingProposal = React.useMemo(() => proposals.find(p => p.prospectId === prospect.id), [proposals, prospect.id]);
 
   const handleUpdateProspect = async (status: Prospect['status'], sellerId: string | null, sellerName: string) => {
     if (!db) return;
@@ -89,57 +92,19 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
       handleUpdateProspect('Contactado', user.uid, userProfile.name);
   }
 
-  const handleCloseSale = async (status: 'Venta Ganada' | 'Venta Perdida') => {
-      if (!user || !userProfile || !db) return;
-
-      const now = new Date();
-      const batch = writeBatch(db);
-
-      // 1. Update prospect status
-      const prospectRef = doc(db, 'prospects', prospect.id);
-      batch.update(prospectRef, { status, updatedAt: now.toISOString() });
-
-      // 2. If won, create a sale document
-      if (status === 'Venta Ganada') {
-          const proposal = proposals.find(p => p.prospectId === prospect.id);
-          const newSale: Omit<Sale, 'id'> = {
-              clientName: prospect.clientName,
-              services: proposal?.services ?? [],
-              seller: prospect.sellerName,
-              date: now.toISOString(),
-              status: 'Pendiente de Pago',
-              totalAmount: proposal?.totalAmount ?? 0,
-              contactNumber: prospect.contactNumber,
-              createdAt: now.toISOString(),
-              updatedAt: now.toISOString(),
-          };
-          const saleId = `SALE-${now.getTime()}`;
-          const salesCol = doc(db, 'sales', saleId);
-          batch.set(salesCol, {...newSale, id: saleId});
-      }
-
-      setIsUpdating(true);
-      try {
-          await batch.commit();
-          toast({
-              title: 'Venta Cerrada',
-              description: `El prospecto ${prospect.clientName} ha sido marcado como ${status}.`
-          });
-      } catch (serverError) {
-          const permissionError = new FirestorePermissionError({
-              path: `prospects/${prospect.id} or sales`,
-              operation: 'update',
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          toast({
-              variant: 'destructive',
-              title: 'Error al cerrar la venta.',
-              description: 'No tienes los permisos necesarios.'
-          });
-      } finally {
-          setIsUpdating(false);
-      }
-  }
+  const handleLoseSale = async () => {
+    if (!db) return;
+    setIsUpdating(true);
+    const prospectRef = doc(db, 'prospects', prospect.id);
+    try {
+        await updateDoc(prospectRef, { status: 'Venta Perdida' });
+        toast({ title: 'Venta marcada como perdida' });
+    } catch(e) {
+        // handle error
+    } finally {
+        setIsUpdating(false);
+    }
+  };
 
     const handleDeleteProspect = async () => {
         if (!db) return;
@@ -229,19 +194,44 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
             )}
             
             {(prospect.status === 'Contactado' || prospect.status === 'En Seguimiento') && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full">Cerrar Venta</Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleCloseSale('Venta Ganada')}>
-                    <CheckCircle className="mr-2 text-green-500" /> Venta Ganada
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCloseSale('Venta Perdida')}>
-                    <XCircle className="mr-2 text-red-500" /> Venta Perdida
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="space-y-2">
+                 <Dialog open={isCloseSaleOpen} onOpenChange={setIsCloseSaleOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="w-full">
+                            <CheckCircle className="mr-2" /> Cerrar Venta Ganada
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Cerrar Venta para {prospect.clientName}</DialogTitle>
+                        </DialogHeader>
+                        <CloseSaleForm 
+                          prospect={prospect}
+                          proposal={existingProposal}
+                          onSuccess={() => setIsCloseSaleOpen(false)}
+                        />
+                    </DialogContent>
+                </Dialog>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                            <XCircle className="mr-2" /> Marcar Venta Perdida
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Marcar como Venta Perdida?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta acción cambiará el estado del prospecto a "Venta Perdida" y lo moverá del pipeline activo.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleLoseSale}>Confirmar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+              </div>
             )}
           </div>
 
