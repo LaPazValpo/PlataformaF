@@ -15,13 +15,6 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProposalForm from '@/components/intranet/proposals/ProposalForm';
 import ProposalDetails from '@/components/intranet/proposals/ProposalDetails';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -36,6 +29,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import ProposalPage from '@/app/proposal/[id]/page';
+
 
 function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: Proposal[] }) {
   const { user, userProfile } = useUser();
@@ -316,6 +311,7 @@ export default function SalesPage() {
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
   
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
+  const [isPublicViewOpen, setIsPublicViewOpen] = React.useState(false);
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | null>(null);
 
   const loading = loadingProspects || loadingProposals || loadingSales;
@@ -328,10 +324,6 @@ export default function SalesPage() {
   if (loading) {
     return <SalesSkeleton />;
   }
-
-  const openProposalLink = (proposalId: string) => {
-    window.open(`/proposal/${proposalId}`, '_blank');
-  };
 
   const handleSendWhatsApp = (proposal: Proposal) => {
     if (!proposal.contactNumber) {
@@ -351,6 +343,11 @@ export default function SalesPage() {
   const handleOpenDetails = (proposal: Proposal) => {
     setSelectedProposal(proposal);
     setIsDetailsOpen(true);
+  }
+  
+  const handleOpenPublicView = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    setIsPublicViewOpen(true);
   }
   
   return (
@@ -405,7 +402,7 @@ export default function SalesPage() {
                                         <Button variant="ghost" size="icon" onClick={() => handleSendWhatsApp(p)} title="Enviar por WhatsApp">
                                             <MessageCircle className="h-4 w-4 text-green-500" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => openProposalLink(p.id)} title="Ver Propuesta Pública">
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenPublicView(p)} title="Ver Propuesta Pública">
                                             <Eye className="h-4 w-4" />
                                         </Button>
                                          <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(p)} title="Ver Detalles Internos">
@@ -468,6 +465,17 @@ export default function SalesPage() {
                     <DialogTitle>Detalles de la Propuesta</DialogTitle>
                 </DialogHeader>
                 {selectedProposal && <ProposalDetails proposalId={selectedProposal.id} />}
+            </DialogContent>
+        </Dialog>
+
+       <Dialog open={isPublicViewOpen} onOpenChange={setIsPublicViewOpen}>
+            <DialogContent className="max-w-4xl p-0">
+                 {/* El componente ProposalPage necesita un objeto `params` simulado */}
+                 {selectedProposal && (
+                    <div className='max-h-[90vh] overflow-y-auto'>
+                         <ProposalPage params={{ id: selectedProposal.id }} />
+                    </div>
+                 )}
             </DialogContent>
         </Dialog>
     </div>
