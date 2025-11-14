@@ -1,203 +1,389 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { testimonials, servicePacks } from '@/lib/data';
-import { Check, Quote } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { HOME_SERVICES, TESTIMONIALS, HERO_IMAGES } from '@/lib/constants';
+import {
+  ArrowRight,
+  Star,
+  BookUser,
+  Flower2,
+} from 'lucide-react';
+import { HeartHandshake, Leaf } from 'lucide-react';
+import { CoffinIcon } from '@/components/icons';
+import { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
 
-export default function LandingPage() {
-  const heroImage = PlaceHolderImages.find(p => p.id === '17');
 
+const iconMap: { [key: string]: React.ElementType } = {
+  HeartHandshake,
+  Leaf,
+  Coffin: CoffinIcon,
+  BookUser,
+  Flower2,
+};
+
+const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) => {
+    const { toast } = useToast();
+    const [clientName, setClientName] = useState('');
+    const [contactNumber, setContactNumber] = useState('');
+    const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const resetForm = () => {
+        setClientName('');
+        setContactNumber('');
+        setEmail('');
+    };
+
+    const handleSubmit = async () => {
+        if (!clientName || !contactNumber) return;
+
+        setIsLoading(true);
+
+        try {
+            // Here you would normally call a server action or API endpoint
+            console.log('Submitting prospect:', { clientName, contactNumber, email });
+            
+            toast({
+                title: 'Solicitud Recibida con Éxito',
+                description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
+            });
+            
+            setIsOpen(false);
+            resetForm();
+
+        } catch (error) {
+             toast({
+                title: 'Error al Enviar la Solicitud',
+                description: 'Hubo un problema al registrar su solicitud. Por favor, intente de nuevo más tarde.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    return (
+        <Dialog open={isOpen} onOpenChange={(open) => {
+            setIsOpen(open);
+            if (!open) resetForm();
+        }}>
+            <DialogTrigger asChild>
+                {triggerButton}
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Solicitar Información</DialogTitle>
+                    <DialogDescription>
+                        Complete el formulario y uno de nuestros asesores se comunicará con usted para brindarle una atención personalizada.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <div>
+                        <Label htmlFor="prospect-client-name">Nombre Completo<span className='text-destructive'>*</span></Label>
+                        <Input id="prospect-client-name" placeholder="Su nombre y apellido" value={clientName} onChange={(e) => setClientName(e.target.value)} required />
+                    </div>
+                     <div>
+                        <Label htmlFor="prospect-contact-number">Teléfono<span className='text-destructive'>*</span></Label>
+                        <Input id="prospect-contact-number" placeholder="Ej: +56 9 1234 5678" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} required/>
+                    </div>
+                     <div>
+                        <Label htmlFor="prospect-email">Correo Electrónico (Opcional)</Label>
+                        <Input id="prospect-email" type="email" placeholder="su@email.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                         <Button type="button" variant="ghost">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="button" onClick={handleSubmit} disabled={isLoading || !clientName || !contactNumber}>
+                        {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+export default function Home() {
+  const [heroImage, setHeroImage] = useState(HERO_IMAGES[0]);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setHeroImage(HERO_IMAGES[Math.floor(Math.random() * HERO_IMAGES.length)]);
+  }, []);
+  
   return (
-    <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
-        <Link href="#" className="flex items-center justify-center" prefetch={false}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-            <svg
-              className="h-5 w-5 text-accent-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2L2 7L12 12L22 7L12 2Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+    <div className="flex flex-col">
+      {/* HERO SECTION */}
+      <section className="relative h-[85vh] min-h-[500px] w-full pt-16 overflow-hidden">
+        {isClient && (
+          <div className="absolute inset-0">
+            <div className="relative h-full w-full">
+              <Image
+                src={heroImage.src}
+                alt={heroImage.hint}
+                data-ai-hint={heroImage.hint}
+                fill
+                className="object-cover"
+                priority
+                key={heroImage.src}
               />
-              <path
-                d="M2 17L12 22L22 17"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 12L12 17L22 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            </div>
           </div>
-          <span className="sr-only">Paz Final</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="/" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Inicio
-          </Link>
-          <Link href="/blog" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Blog
-          </Link>
-          <Link href="/contacto" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Contacto
-          </Link>
-          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Intranet
-          </Link>
-        </nav>
-      </header>
-      <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-              {heroImage && (
-                  <Image
-                  src={heroImage.imageUrl}
-                  alt="Hero"
-                  width={600}
-                  height={400}
-                  className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last lg:aspect-square"
-                  data-ai-hint={heroImage.imageHint}
-                />
-              )}
-              <div className="flex flex-col justify-center space-y-4">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Dignidad y Respeto en el Último Adiós
-                  </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    En Paz Final, ofrecemos servicios funerarios integrales, diseñados para honrar la memoria de sus seres queridos con la compasión y profesionalismo que usted merece.
-                  </p>
-                </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link
-                    href="#servicios"
-                    className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                    prefetch={false}
+        )}
+        <div className="absolute inset-0 bg-black/40" />
+        <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
+          <h1 className="font-headline text-4xl font-bold tracking-tight md:text-6xl pt-20">
+            Acompañamiento Digno y Respetuoso
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg text-gray-200">
+            En La Paz de Cristo, ofrecemos un apoyo cálido y profesional para
+            honrar la memoria de sus seres queridos.
+          </p>
+          <div>
+            <ProspectModal triggerButton={
+              <Button className="mt-8" size="lg">Contáctenos</Button>
+            } />
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICIOS SECTION */}
+      <section id="servicios" className="py-16 md:py-24" style={{ backgroundColor: 'hsl(240, 67%, 97%)' }}>
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-headline text-3xl font-bold md:text-4xl">
+              Servicios Pensados para Usted
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+             Ofrecemos servicios inmediatos y cremación. Para más detalles, planes de previsión y una atención personalizada, contáctenos.
+            </p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
+            {HOME_SERVICES.map((service) => {
+              const Icon = iconMap[service.icon];
+              return (
+                <div key={service.title}>
+                  <Card
+                    className="flex flex-col overflow-hidden text-center"
                   >
-                    Ver Servicios
-                  </Link>
+                    <CardHeader className="flex flex-col items-center gap-4">
+                      {Icon && (
+                        <div className="rounded-full bg-primary/10 p-3">
+                          <Icon className="h-6 w-6 text-primary" />
+                        </div>
+                      )}
+                      <CardTitle className="font-headline text-xl">
+                        {service.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <p className="text-muted-foreground">
+                        {service.description}
+                      </p>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
-        </section>
-        
-        <section id="servicios" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container px-4 md:px-6">
-            <div className="flex flex-col items-center justify-center space-y-4 text-center">
-              <div className="space-y-2">
-                <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Nuestros Servicios</div>
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Planes para Cada Necesidad</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Ofrecemos una variedad de paquetes para asegurar una despedida respetuosa y acorde a sus deseos, con la flexibilidad de personalizar cada detalle.
-                </p>
-              </div>
+           <div className="text-center mt-12">
+               <Button asChild size="lg">
+                  <Link href="/intranet/services">Ver Catálogo Completo</Link>
+               </Button>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-6 py-12 lg:grid-cols-3 lg:gap-12">
-              {servicePacks.slice(0,3).map((pack) => (
-                <Card key={pack.id} className="flex flex-col">
-                  <CardHeader>
-                    <CardTitle>{pack.title}</CardTitle>
-                    <CardDescription>{pack.idealFor}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <div className="text-4xl font-bold">{pack.price}</div>
-                    <ul className="mt-4 grid gap-2 text-muted-foreground">
-                      {pack.features.map((feature) => (
-                        <li key={feature.title} className="flex items-center gap-2">
-                          <Check className="h-4 w-4 text-primary" />
-                          {feature.title}
-                        </li>
-                      ))}
-                    </ul>
+        </div>
+      </section>
+
+      {/* TESTIMONIOS SECTION */}
+      <section id="testimonios" className="bg-white py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-headline text-3xl font-bold md:text-4xl">
+              El Testimonio de Nuestras Familias
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              La confianza y la gratitud de las familias a las que hemos
+              servido es nuestro mayor orgullo.
+            </p>
+          </div>
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {TESTIMONIALS.map((testimonial) => (
+              <div key={testimonial.name}>
+                <Card className="flex flex-col">
+                  <CardContent className="pt-6 flex-grow">
+                    <div className="flex text-yellow-500 mb-2">
+                        {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-current" />)}
+                    </div>
+                    <p className="text-muted-foreground italic">
+                      &quot;{testimonial.quote}&quot;
+                    </p>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full">Contactar Asesor</Button>
+                    <div className="flex items-center">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>
+                          {testimonial.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="ml-4">
+                        <p className="font-semibold">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {testimonial.relation}
+                        </p>
+                      </div>
+                    </div>
                   </CardFooter>
                 </Card>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="testimonios" className="w-full py-12 md:py-24 lg:py-32">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Lo que Nuestras Familias Dicen</h2>
-              <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                El cuidado y la empatía son el centro de nuestro servicio.
-              </p>
-            </div>
-            <div className="grid w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {testimonials.map((testimonial) => (
-                    <Card key={testimonial.id}>
-                        <CardContent className="p-6">
-                            <blockquote className="flex flex-col justify-between h-full">
-                                <div>
-                                    <Quote className="h-6 w-6 text-muted-foreground mb-2"/>
-                                    <p className="text-muted-foreground italic">"{testimonial.quote}"</p>
-                                </div>
-                                <footer className="mt-4">
-                                    <p className="font-semibold">{testimonial.name}</p>
-                                    <p className="text-sm text-muted-foreground">{testimonial.relation}</p>
-                                </footer>
-                            </blockquote>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+      {/* BLOG SECTION */}
+      <section id="blog" className="py-16 md:py-24" style={{ backgroundColor: 'hsl(240, 67%, 97%)' }}>
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="font-headline text-3xl font-bold md:text-4xl">
+              Guías y Recursos de Apoyo
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Artículos para acompañarle y ofrecerle información útil en los
+              momentos de duelo.
+            </p>
           </div>
-        </section>
-        
-        <section id="nosotros" className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container px-4 md:px-6">
-            <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Nuestra Misión: Acompañar con Calidez y Profesionalismo</h2>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Paz Final nace de la necesidad de brindar un servicio funerario que combine la eficiencia y el respeto con una profunda empatía hacia las familias en duelo. Nuestro equipo está comprometido a aliviar su carga en los momentos más difíciles.
-                </p>
-              </div>
-              <div className="flex justify-center">
-                 <Image
-                  src="https://images.unsplash.com/photo-1549048050-479b76da4fdc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Y2F0ZXJpbmclMjBmb29kfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib=rb-4.1.0&q=80&w=1080"
-                  alt="Nuestro Equipo"
-                  width={550}
-                  height={310}
-                  className="rounded-xl object-cover"
-                  data-ai-hint="team picture"
-                />
-              </div>
-            </div>
+          <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+             <Card
+                  className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+                >
+                  <Link href="/blog">
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src="https://picsum.photos/seed/blog1/600/400"
+                        alt="Blog post 1"
+                        data-ai-hint="grief support"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </Link>
+                  <CardHeader>
+                    <CardTitle className="font-headline text-xl">
+                      <Link href="/blog">Cómo Afrontar el Duelo: Una Guía para Tiempos Difíciles</Link>
+                    </CardTitle>
+                    <CardDescription>15 de Julio, 2024</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-muted-foreground">El duelo es un proceso personal y único. Aquí te ofrecemos algunos consejos para navegar estos momentos complicados y encontrar consuelo.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" asChild className="p-0">
+                      <Link href="/blog">
+                        Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+                <Card
+                  className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+                >
+                  <Link href="/blog">
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src="https://picsum.photos/seed/blog2/600/400"
+                        alt="Blog post 2"
+                        data-ai-hint="funeral ritual"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </Link>
+                  <CardHeader>
+                    <CardTitle className="font-headline text-xl">
+                      <Link href="/blog">La Importancia de los Rituales Funerarios</Link>
+                    </CardTitle>
+                    <CardDescription>5 de Julio, 2024</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-muted-foreground">Los rituales nos ayudan a procesar la pérdida y a honrar la vida de nuestros seres queridos. Explora por qué son tan significativos.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" asChild className="p-0">
+                      <Link href="/blog">
+                        Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
+                <Card
+                  className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+                >
+                  <Link href="/blog">
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src="https://picsum.photos/seed/blog3/600/400"
+                        alt="Blog post 3"
+                        data-ai-hint="virtual connection"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  </Link>
+                  <CardHeader>
+                    <CardTitle className="font-headline text-xl">
+                      <Link href="/blog">Capillas Virtuales: Conectando Corazones a la Distancia</Link>
+                    </CardTitle>
+                    <CardDescription>28 de Junio, 2024</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-muted-foreground">Descubre cómo la tecnología nos permite estar cerca de nuestros seres queridos, sin importar dónde se encuentren.</p>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="link" asChild className="p-0">
+                      <Link href="/blog">
+                        Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
+                </Card>
           </div>
-        </section>
-      </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; 2024 Paz Final. Todos los derechos reservados.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Términos de Servicio
-          </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
-            Privacidad
-          </Link>
-        </nav>
-      </footer>
+           <div className="text-center mt-12">
+                <Button asChild size="lg" variant="outline">
+                    <Link href="/blog">Visitar Nuestro Blog</Link>
+                </Button>
+            </div>
+        </div>
+      </section>
     </div>
   );
 }

@@ -10,7 +10,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import Link from 'next/link';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, { message: 'El nombre debe tener al menos 2 caracteres.' }),
@@ -35,56 +34,6 @@ export default function ContactoPage() {
   }
 
   return (
-     <div className="flex flex-col min-h-screen">
-       <header className="px-4 lg:px-6 h-14 flex items-center bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
-        <Link href="/" className="flex items-center justify-center" prefetch={false}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
-            <svg
-              className="h-5 w-5 text-accent-foreground"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 2L2 7L12 12L22 7L12 2Z"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 17L12 22L22 17"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M2 12L12 17L22 12"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
-          <span className="sr-only">Paz Final</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link href="/" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Inicio
-          </Link>
-          <Link href="/blog" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Blog
-          </Link>
-          <Link href="/contacto" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Contacto
-          </Link>
-          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Intranet
-          </Link>
-        </nav>
-      </header>
       <main className="flex-1 container py-8">
         <PageHeader
           title="Contacto"
@@ -147,6 +96,5 @@ export default function ContactoPage() {
           </Card>
         </div>
       </main>
-    </div>
   );
 }

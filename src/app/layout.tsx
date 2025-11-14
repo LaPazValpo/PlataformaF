@@ -1,10 +1,12 @@
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { RootLayoutInner } from './layout-inner';
 
 export const metadata: Metadata = {
-  title: 'Paz Final Central',
-  description: 'CRM y gestión para Paz Final',
+  title: 'La Paz de Cristo - Servicios Funerarios',
+  description:
+    'Ofrecemos un acompañamiento respetuoso y digno en los momentos más difíciles. Servicios funerarios completos con transparencia y calidez humana.',
 };
 
 export default function RootLayout({
@@ -13,14 +15,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className="font-body antialiased">
-        {children}
+        <RootLayoutInner>{children}</RootLayoutInner>
         <Toaster />
       </body>
     </html>

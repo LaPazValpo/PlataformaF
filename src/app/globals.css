@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 
 @layer base {
   :root {
-    --background: 210 33% 97%;
+    --background: 210 33% 98%;
     --foreground: 225 29% 10%;
     --card: 210 33% 100%;
     --card-foreground: 225 29% 10%;
     --popover: 210 33% 100%;
     --popover-foreground: 225 29% 10%;
-    --primary: 225 29% 26%;
+    --primary: 225 29% 26%; /* Deep Navy Blue */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 30% 93%;
     --secondary-foreground: 225 29% 26%;
-    --muted: 210_30%_93%;
+    --muted: 210 30% 93%;
     --muted-foreground: 225 29% 45%;
-    --accent: 30 26% 55%;
+    --accent: 30 26% 55%; /* Soft Gold */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -42,6 +42,7 @@ body {
     --sidebar-border: 225 29% 28%;
     --sidebar-ring: 30 26% 55%;
   }
+
   .dark {
     --background: 225 29% 10%;
     --foreground: 210 40% 98%;
