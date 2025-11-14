@@ -4,6 +4,7 @@ import * as React from 'react';
 import {
   ArrowUpDown,
   ChevronDown,
+  MoreHorizontal,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -27,6 +28,8 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
@@ -40,6 +43,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import SellerForm from '@/components/intranet/vendedores/SellerForm';
+
 
 type SellerPerformance = Seller & {
   totalSalesValue: number;
@@ -52,6 +58,41 @@ const formatCurrency = (amount: number) => {
     currency: 'CLP',
   }).format(amount);
 };
+
+function SellerActions({ seller }: { seller: SellerPerformance }) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+
+  return (
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menú</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+          <DialogTrigger asChild>
+            <DropdownMenuItem>Editar Vendedor</DropdownMenuItem>
+          </DialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar Vendedor</DialogTitle>
+        </DialogHeader>
+        <SellerForm 
+          mode="edit" 
+          sellerId={seller.id} 
+          initialData={seller}
+          onSuccess={() => setIsEditDialogOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 export const columns: ColumnDef<SellerPerformance>[] = [
   {
@@ -140,9 +181,13 @@ export const columns: ColumnDef<SellerPerformance>[] = [
       </div>
     ),
   },
+  {
+    id: "actions",
+    cell: ({ row }) => <SellerActions seller={row.original} />,
+  },
 ];
 
-function SalesPerformanceSkeleton() {
+function VendedoresPageSkeleton() {
     return (
         <div className="w-full">
             <PageHeader
@@ -157,7 +202,7 @@ function SalesPerformanceSkeleton() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            {[...Array(6)].map((_, i) => (
+                            {[...Array(7)].map((_, i) => (
                                 <TableHead key={i}>
                                     <Skeleton className="h-5 w-full" />
                                 </TableHead>
@@ -167,7 +212,7 @@ function SalesPerformanceSkeleton() {
                     <TableBody>
                         {[...Array(5)].map((_, i) => (
                             <TableRow key={i}>
-                                {[...Array(6)].map((_, j) => (
+                                {[...Array(7)].map((_, j) => (
                                     <TableCell key={j}>
                                         <Skeleton className="h-5 w-full" />
                                     </TableCell>
@@ -228,7 +273,7 @@ export default function VendedoresPage() {
   });
 
   if (loadingSales || loadingSellers) {
-    return <SalesPerformanceSkeleton />;
+    return <VendedoresPageSkeleton />;
   }
 
   return (

@@ -1,7 +1,8 @@
 'use client';
 
+import * as React from 'react';
 import type { InventoryItem } from '@/lib/types';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import InventoryForm from '@/components/intranet/inventory/InventoryForm';
 
 function getStockStatus(quantity: number): { text: string; variant: 'default' | 'secondary' | 'destructive' } {
   if (quantity <= 0) {
@@ -23,6 +35,45 @@ function getStockStatus(quantity: number): { text: string; variant: 'default' | 
     return { text: 'Stock Bajo', variant: 'secondary' };
   }
   return { text: 'En Stock', variant: 'default' };
+}
+
+function InventoryActions({ item }: { item: InventoryItem }) {
+  const { userProfile } = useUser();
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+
+  if (userProfile?.role !== 'Administrador') {
+    return null;
+  }
+
+  return (
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Abrir menú</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+          <DialogTrigger asChild>
+            <DropdownMenuItem>Editar</DropdownMenuItem>
+          </DialogTrigger>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Editar Item de Inventario</DialogTitle>
+        </DialogHeader>
+        <InventoryForm
+          mode="edit"
+          itemId={item.id}
+          initialData={item}
+          onSuccess={() => setIsEditDialogOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function InventorySkeleton() {
@@ -44,6 +95,7 @@ function InventorySkeleton() {
                                 <TableHead>Categoría</TableHead>
                                 <TableHead className="text-right">Cantidad</TableHead>
                                 <TableHead className="text-center">Estado</TableHead>
+                                <TableHead><span className="sr-only">Acciones</span></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -56,6 +108,7 @@ function InventorySkeleton() {
                                     <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                                     <TableCell className="text-right"><Skeleton className="h-5 w-10 ml-auto" /></TableCell>
                                     <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto" /></TableCell>
+                                    <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -68,7 +121,8 @@ function InventorySkeleton() {
 
 export default function InventoryPage() {
   const { data: inventory, loading } = useCollection<InventoryItem>('inventory');
-  
+  const { userProfile } = useUser();
+
   if (loading) {
     return <InventorySkeleton />;
   }
@@ -91,6 +145,7 @@ export default function InventoryPage() {
                 <TableHead>Categoría</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-center">Estado</TableHead>
+                 {userProfile?.role === 'Administrador' && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,6 +162,11 @@ export default function InventoryPage() {
                     <TableCell className="text-center">
                       <Badge variant={status.variant}>{status.text}</Badge>
                     </TableCell>
+                    {userProfile?.role === 'Administrador' && (
+                        <TableCell className="text-right">
+                          <InventoryActions item={item} />
+                        </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
