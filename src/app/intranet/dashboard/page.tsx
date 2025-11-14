@@ -3,13 +3,84 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 import { PageHeader } from '@/components/common/page-header';
-import { prospects, sales, sellers } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ArrowUp, Briefcase, Users, Wallet } from 'lucide-react';
+import { useCollection } from '@/firebase';
+import type { Prospect, Sale, Seller } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="Dashboard"
+        description="Bienvenido al centro de control de Paz Final."
+      />
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-7 w-32" />
+              <Skeleton className="h-3 w-28 mt-1" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle>Resumen de Ventas</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+             <Skeleton className="h-[300px] w-full" />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Ventas Recientes</CardTitle>
+          </CardHeader>
+          <CardContent>
+             <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="h-9 w-9 rounded-full" />
+                            <div className="space-y-1">
+                                <Skeleton className="h-4 w-24" />
+                                <Skeleton className="h-3 w-16" />
+                            </div>
+                        </div>
+                        <div className="text-right space-y-1">
+                            <Skeleton className="h-4 w-20" />
+                            <Skeleton className="h-4 w-12 ml-auto" />
+                        </div>
+                    </div>
+                ))}
+             </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 
 export default function DashboardPage() {
+  const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
+  const { data: prospects, loading: loadingProspects } = useCollection<Prospect>('prospects');
+  const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
+
+  if (loadingSales || loadingProspects || loadingSellers) {
+    return <DashboardSkeleton />;
+  }
+  
   const totalSales = sales.reduce((acc, sale) => acc + sale.totalAmount, 0);
   const totalProspects = prospects.length;
   const conversionRate = totalProspects > 0 ? (sales.length / totalProspects) * 100 : 0;
