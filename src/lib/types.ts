@@ -23,15 +23,19 @@ export interface Prospect {
 
 export interface Proposal {
   id: string;
+  prospectId?: string | null;
   clientName: string;
   services: string[];
-  seller: string;
-  date: string;
-  status: 'Propuesta Enviada' | 'En Negociación' | 'Aceptada' | 'Rechazada';
-  contactNumber: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
+  sellerId?: string | null;
+  sellerName: string;
+  date: string; // ISO
+  status: 'Borrador' | 'Propuesta Enviada' | 'Propuesta Aceptada' | 'Propuesta Rechazada';
+  totalAmount?: number;
+  contactNumber?: string;
+  email?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Sale {

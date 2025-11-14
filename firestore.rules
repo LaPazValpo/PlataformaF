@@ -40,9 +40,6 @@ service cloud.firestore {
       allow create, update: if isOwner(userId);
     }
     
-    // Para las colecciones de la intranet, ahora permitimos la lectura si el usuario tiene
-    // el rol adecuado. La aplicación se encargará de no llamar a estas colecciones
-    // hasta que se haya verificado el rol del usuario.
     match /prospects/{prospectId} {
       allow create: if true;
       allow read, update, delete: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
@@ -57,6 +54,7 @@ service cloud.firestore {
     }
     
     match /clients/{clientId} {
+      allow create: if true;
       allow read, write: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
     }
     

@@ -33,10 +33,11 @@ import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { type: 'divider', label: 'Ventas' },
   { href: '/intranet/prospects', icon: Users, label: 'Prospectos' },
   { href: '/intranet/proposals', icon: FileText, label: 'Propuestas' },
   { href: '/intranet/completed-sales', icon: HandCoins, label: 'Ventas' },
-  { type: 'divider' },
+  { type: 'divider', label: 'Operaciones' },
   { href: '/intranet/sales', icon: Briefcase, label: 'Rendimiento' },
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
@@ -150,30 +151,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   
   useEffect(() => {
+    // Only check after the initial loading is complete
     if (!loading) {
+      // If there's no user or the user doesn't have a role, redirect to login
       if (!user || !userProfile?.role) {
         router.replace('/login');
       }
     }
   }, [user, userProfile, loading, router]);
   
-  if (loading) {
+  // While loading, or if the user is not yet available, show the skeleton.
+  // This prevents the brief flash of content before the redirection check.
+  if (loading || !user || !userProfile?.role) {
     return <IntranetLayoutSkeleton />;
   }
   
-  if (user && userProfile?.role) {
-    return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:justify-end">
-              <SidebarTrigger className="md:hidden"/>
-          </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
-    );
-  }
-
-  return <IntranetLayoutSkeleton />;
+  // If loading is complete and user has a role, show the content.
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:justify-end">
+            <SidebarTrigger className="md:hidden"/>
+        </header>
+        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
+  );
 }
