@@ -146,8 +146,8 @@ function SalesPerformanceSkeleton() {
     return (
         <div className="w-full">
             <PageHeader
-                title="Rendimiento de Ventas"
-                description="Analiza el rendimiento de cada vendedor."
+                title="Gestión de Vendedores"
+                description="Supervisa el equipo de ventas, su rendimiento y comisiones."
             />
             <div className="flex items-center py-4">
                 <Skeleton className="h-10 w-full max-w-sm" />
@@ -234,8 +234,8 @@ export default function SalesPerformancePage() {
   return (
     <div className="w-full">
       <PageHeader
-        title="Rendimiento de Ventas"
-        description="Analiza el rendimiento de cada vendedor."
+        title="Gestión de Vendedores"
+        description="Supervisa el equipo de ventas, su rendimiento y comisiones."
       />
       <div className="flex items-center py-4">
         <Input
