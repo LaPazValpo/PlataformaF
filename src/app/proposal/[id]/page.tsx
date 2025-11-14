@@ -96,11 +96,10 @@ function ProposalPageSkeleton() {
 }
 
 
-export default function ProposalPage({ params }: { params?: { id: string }}) {
+function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
   const pageParams = useParams();
-  const proposalId = params?.id ?? (pageParams?.id as string);
-  
-  // Firestore hooks
+  const proposalId = proposalIdFromProps || (pageParams.id as string);
+
   const db = useFirestore();
   const { toast } = useToast();
   const { data: proposal, loading: loadingProposal } = useDoc<Proposal>('proposals', proposalId);
@@ -108,7 +107,6 @@ export default function ProposalPage({ params }: { params?: { id: string }}) {
   const { data: individualServices, loading: loadingIndividual } = useCollection<IndividualService>('individualServices');
   const { data: virtualChapelPlans, loading: loadingChapel } = useCollection<VirtualChapelPlan>('virtualChapelPlans');
   
-  // Component state
   const [selectedServices, setSelectedServices] = useState<SelectableService[]>([]);
   const [isAccepted, setIsAccepted] = useState(proposal?.status === 'Propuesta Aceptada');
 
@@ -116,7 +114,6 @@ export default function ProposalPage({ params }: { params?: { id: string }}) {
 
   const servicePackTitles = useMemo(() => new Set(servicePacks.map(p => p.title)), [servicePacks]);
 
-  // Effect to initialize selected services from the proposal
   useEffect(() => {
     if (proposal && !isLoading) {
       const allServices = [...servicePacks, ...individualServices, ...virtualChapelPlans];
@@ -397,3 +394,9 @@ export default function ProposalPage({ params }: { params?: { id: string }}) {
     </div>
   );
 }
+
+export default function ProposalPageWrapper(props: { params?: { id: string } }) {
+  return <QuotationPage id={props.params?.id} />;
+}
+
+    
