@@ -32,8 +32,10 @@ service cloud.firestore {
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      // Cualquiera que haya iniciado sesión puede leer perfiles.
-      allow read: if isSignedIn();
+      // Un usuario autenticado puede leer su propio perfil (CRÍTICO para que getRole() funcione).
+      // Un Administrador puede leer cualquier perfil.
+      allow read: if (isSignedIn() && isOwner(userId)) || isRole('Administrador');
+      
       // Solo el dueño del perfil o un Administrador pueden escribir.
       allow write: if isOwner(userId) || isRole('Administrador');
     }
