@@ -32,43 +32,35 @@ service cloud.firestore {
     // -- Reglas por Colección --
 
     match /users/{userId} {
-      // El dueño puede leer y escribir su propio perfil.
-      // Un Administrador puede leer cualquier perfil.
       allow get: if isOwner(userId) || isRole('Administrador');
       allow list: if isRole('Administrador');
-      
-      // Un usuario autenticado puede crear su propio perfil por primera vez.
-      // El dueño del perfil o un Administrador pueden actualizar.
-      allow write: if isOwner(userId) || isRole('Administrador');
+      // Permite al dueño del perfil escribir en su propio documento.
+      // Esto es necesario para que el usuario pueda establecer su rol al iniciar sesión por primera vez.
+      allow write: if isOwner(userId);
     }
     
     match /prospects/{prospectId} {
       // Cualquiera puede crear un prospecto (para el formulario de la landing).
       allow create: if true;
       // Solo roles autorizados pueden leer y modificar prospectos.
-      allow get, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, list, update, delete: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /proposals/{proposalId} {
-      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sales/{saleId} {
-      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /clients/{clientId} {
-      allow get, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, list, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sellers/{sellerId} {
        // Solo roles autorizados pueden ver la información de los vendedores.
-      allow get: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
-      allow list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow get, list: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
       // Solo el administrador puede crear, actualizar o eliminar vendedores.
       allow write: if isRole('Administrador');
     }
