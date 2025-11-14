@@ -500,15 +500,18 @@ SidebarMenu.displayName = "SidebarMenu"
 
 const SidebarMenuItem = React.forwardRef<
   HTMLLIElement,
-  React.ComponentProps<"li">
->(({ className, ...props }, ref) => (
-  <li
-    ref={ref}
-    data-sidebar="menu-item"
-    className={cn("group/menu-item relative", className)}
-    {...props}
-  />
-))
+  React.HTMLAttributes<HTMLLIElement> & { asChild?: boolean }
+>(({ className, asChild, ...props }, ref) => {
+  const Comp = asChild ? Slot : "li";
+  return (
+    <Comp
+      ref={ref}
+      data-sidebar="menu-item"
+      className={cn("group/menu-item relative", className)}
+      {...props}
+    />
+  );
+});
 SidebarMenuItem.displayName = "SidebarMenuItem"
 
 const sidebarMenuButtonVariants = cva(
@@ -536,7 +539,6 @@ const sidebarMenuButtonVariants = cva(
 const SidebarMenuButton = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button"> & {
-    as?: React.ElementType
     asChild?: boolean
     isActive?: boolean
     tooltip?: string | React.ComponentProps<typeof TooltipContent>
@@ -544,21 +546,19 @@ const SidebarMenuButton = React.forwardRef<
 >(
   (
     {
-      as: Comp = 'button',
-      asChild = false,
+      asChild,
       isActive = false,
       variant = "default",
       size = "default",
       tooltip,
       className,
+      children,
       ...props
     },
     ref
   ) => {
     
-    if (asChild) {
-      console.warn("asChild is not supported for SidebarMenuButton. Use the as prop instead.");
-    }
+    const Comp = asChild ? Slot : "button";
     
     const { isMobile, state } = useSidebar()
 
@@ -570,7 +570,9 @@ const SidebarMenuButton = React.forwardRef<
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         {...props}
-      />
+      >
+        {children}
+      </Comp>
     )
 
     if (!tooltip) {

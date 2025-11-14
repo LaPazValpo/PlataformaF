@@ -93,7 +93,7 @@ function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {navItems.map((item) => (
-             <SidebarMenuItem key={item.href}>
+             <SidebarMenuItem key={item.href} asChild>
                 <Link href={item.href}>
                   <SidebarMenuButton
                     isActive={pathname.startsWith(item.href)}
