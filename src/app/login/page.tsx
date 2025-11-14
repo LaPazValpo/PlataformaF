@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 
@@ -58,23 +58,37 @@ export default function LoginPage() {
       // Asignar rol de Administrador si es el superusuario
       if (values.email === 'lapazdecristovalpo@gmail.com') {
         const userRef = doc(db, 'users', user.uid);
-        const userData = {
+        const adminData = {
           role: 'Administrador',
           email: user.email,
           name: 'Admin Principal',
           id: user.uid,
         };
 
-        // El setDoc no se bloquea, pero captura errores de permisos específicos
-        setDoc(userRef, userData, { merge: true })
-          .catch((serverError) => {
-            const permissionError = new FirestorePermissionError({
+        try {
+          // Intenta actualizar primero, asumiendo que el documento podría existir.
+          await updateDoc(userRef, { role: 'Administrador' });
+        } catch (updateError: any) {
+          // Si falla porque no existe (code: 'not-found'), créalo.
+          if (updateError.code === 'not-found') {
+            setDoc(userRef, adminData, { merge: true }).catch((createError) => {
+              const permissionError = new FirestorePermissionError({
                 path: userRef.path,
-                operation: 'update', // o 'create'
-                requestResourceData: userData,
-             });
-             errorEmitter.emit('permission-error', permissionError);
-          });
+                operation: 'create',
+                requestResourceData: adminData,
+              });
+              errorEmitter.emit('permission-error', permissionError);
+            });
+          } else {
+            // Si es otro error (como permisos), emítelo.
+            const permissionError = new FirestorePermissionError({
+              path: userRef.path,
+              operation: 'update',
+              requestResourceData: { role: 'Administrador' },
+            });
+            errorEmitter.emit('permission-error', permissionError);
+          }
+        }
       }
 
       toast({
