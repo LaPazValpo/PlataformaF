@@ -9,6 +9,7 @@ export interface UserProfile {
 
 export interface Prospect {
   id: string;
+  prospectId: string;
   clientName: string;
   contactNumber: string;
   email: string;

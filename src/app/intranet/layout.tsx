@@ -4,12 +4,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Church,
+  FileText,
   HandCoins,
   LayoutDashboard,
   Package,
   PanelLeft,
   Sparkles,
+  Users,
   Warehouse,
+  Briefcase,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,7 +33,11 @@ import { useUser } from '@/firebase';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/intranet/sales', icon: HandCoins, label: 'Rendimiento' },
+  { href: '/intranet/prospects', icon: Users, label: 'Prospectos' },
+  { href: '/intranet/proposals', icon: FileText, label: 'Propuestas' },
+  { href: '/intranet/completed-sales', icon: HandCoins, label: 'Ventas' },
+  { type: 'divider' },
+  { href: '/intranet/sales', icon: Briefcase, label: 'Rendimiento' },
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
   { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
@@ -86,23 +93,28 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => (
-             <SidebarMenuItem key={item.href}>
-                <Link href={item.href}>
-                  <SidebarMenuButton
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={{
-                      children: item.label,
-                      side: 'right',
-                      className: 'bg-sidebar-background text-sidebar-foreground',
-                    }}
-                  >
-                    <item.icon />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </Link>
-            </SidebarMenuItem>
-          ))}
+          {navItems.map((item, index) => {
+            if (item.type === 'divider') {
+              return <Separator key={`divider-${index}`} className="my-2 bg-sidebar-border" />;
+            }
+             return (
+               <SidebarMenuItem key={item.href}>
+                  <Link href={item.href!}>
+                    <SidebarMenuButton
+                      isActive={pathname.startsWith(item.href!)}
+                      tooltip={{
+                        children: item.label,
+                        side: 'right',
+                        className: 'bg-sidebar-background text-sidebar-foreground',
+                      }}
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </Link>
+              </SidebarMenuItem>
+             )
+          })}
         </SidebarMenu>
       </SidebarContent>
       <Separator className="my-2 bg-sidebar-border" />
@@ -138,24 +150,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   
   useEffect(() => {
-    // Solo toma una decisión cuando la carga haya finalizado
     if (!loading) {
-      // Si después de cargar, no hay usuario o el usuario no tiene un rol,
-      // entonces redirige al login.
       if (!user || !userProfile?.role) {
         router.replace('/login');
       }
     }
   }, [user, userProfile, loading, router]);
   
-  // Mientras el hook `useUser` está cargando la autenticación Y el perfil de Firestore,
-  // muestra el esqueleto de carga.
   if (loading) {
     return <IntranetLayoutSkeleton />;
   }
   
-  // Si la carga finalizó y tenemos un usuario con un perfil y rol válidos,
-  // muestra el contenido de la intranet.
   if (user && userProfile?.role) {
     return (
       <SidebarProvider>
@@ -170,7 +175,5 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Si la carga ha finalizado pero el usuario no está autorizado (el useEffect se encargará
-  // de la redirección), muestra el esqueleto para evitar un parpadeo de contenido no deseado.
   return <IntranetLayoutSkeleton />;
 }
