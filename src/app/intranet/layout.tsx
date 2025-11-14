@@ -13,6 +13,7 @@ import {
   Users,
   Warehouse,
   Briefcase,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -29,7 +30,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -85,7 +88,16 @@ function PazFinalLogo() {
 
 function AppSidebar() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const { user, userProfile } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    if (auth) {
+      await signOut(auth);
+      router.push('/login');
+    }
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -120,15 +132,26 @@ function AppSidebar() {
       </SidebarContent>
       <Separator className="my-2 bg-sidebar-border" />
       <SidebarFooter>
-        <div className="flex items-center gap-3 p-2">
-          <Avatar className="h-9 w-9">
-            <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/admin/100/100`} />
-            <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col overflow-hidden whitespace-nowrap">
-             <span className="text-sm font-medium text-sidebar-foreground">{user?.displayName ?? 'Admin'}</span>
-             <span className="text-xs text-sidebar-foreground/70">{user?.email}</span>
-          </div>
+        <div className="flex items-center justify-between p-2">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={user?.photoURL ?? `https://picsum.photos/seed/admin/100/100`} />
+                <AvatarFallback>{user?.email?.[0].toUpperCase() ?? 'A'}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col overflow-hidden whitespace-nowrap">
+                <span className="text-sm font-medium text-sidebar-foreground">{userProfile?.name ?? 'Admin'}</span>
+                <span className="text-xs text-sidebar-foreground/70">{user?.email}</span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="sr-only">Cerrar sesión</span>
+            </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
