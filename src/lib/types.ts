@@ -72,7 +72,7 @@ export interface Seller {
   commission: number;
   conversionRate: number;
   avatar: string;
-  role: 'Vendedor' | 'Vendedor Senior';
+  role: 'Vendedor' | 'Vendedor Senior' | 'Administrador';
   user: string;
   pass: string;
   createdAt: string;

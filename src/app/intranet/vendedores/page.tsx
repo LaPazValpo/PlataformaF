@@ -5,6 +5,7 @@ import {
   ArrowUpDown,
   ChevronDown,
   MoreHorizontal,
+  Edit,
 } from 'lucide-react';
 import {
   ColumnDef,
@@ -20,7 +21,7 @@ import {
 } from '@tanstack/react-table';
 
 import type { Sale, Seller } from '@/lib/types';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import {
@@ -74,7 +75,10 @@ function SellerActions({ seller }: { seller: SellerPerformance }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DialogTrigger asChild>
-            <DropdownMenuItem>Editar Vendedor</DropdownMenuItem>
+            <DropdownMenuItem>
+                <Edit className="mr-2 h-4 w-4" />
+                Editar Vendedor
+            </DropdownMenuItem>
           </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -94,7 +98,7 @@ function SellerActions({ seller }: { seller: SellerPerformance }) {
 }
 
 
-export const columns: ColumnDef<SellerPerformance>[] = [
+const getColumns = (isAdmin: boolean): ColumnDef<SellerPerformance>[] => [
   {
     accessorKey: 'name',
     header: 'Vendedor',
@@ -181,10 +185,10 @@ export const columns: ColumnDef<SellerPerformance>[] = [
       </div>
     ),
   },
-  {
+  ...(isAdmin ? [{
     id: "actions",
-    cell: ({ row }) => <SellerActions seller={row.original} />,
-  },
+    cell: ({ row }: { row: { original: SellerPerformance } }) => <SellerActions seller={row.original} />,
+  } as ColumnDef<SellerPerformance>] : []),
 ];
 
 function VendedoresPageSkeleton() {
@@ -227,6 +231,7 @@ function VendedoresPageSkeleton() {
 }
 
 export default function VendedoresPage() {
+  const { userProfile } = useUser();
   const { data: sales, loading: loadingSales } = useCollection<Sale>('sales');
   const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
   
@@ -234,6 +239,9 @@ export default function VendedoresPage() {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  
+  const isAdmin = userProfile?.role === 'Administrador';
+  const columns = React.useMemo(() => getColumns(isAdmin), [isAdmin]);
 
   const sellerPerformanceData = React.useMemo(() => {
     if (loadingSellers || loadingSales || !sellers || !sales) return [];

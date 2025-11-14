@@ -37,11 +37,12 @@ function FeatureImage({ feature }: { feature: ServicePackFeature }) {
 function ServicePackCard({ pack }: { pack: ServicePack }) {
   const { userProfile } = useUser();
   const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const isAdmin = userProfile?.role === 'Administrador';
 
   return (
     <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
       <Card className={`flex flex-col relative ${pack.recommended ? 'border-primary ring-2 ring-primary' : ''}`}>
-        {userProfile?.role === 'Administrador' && (
+        {isAdmin && (
           <DialogTrigger asChild>
             <Button variant="outline" size="icon" className="absolute top-2 right-2 h-7 w-7">
               <Edit className="h-4 w-4" />
@@ -74,12 +75,14 @@ function ServicePackCard({ pack }: { pack: ServicePack }) {
           <Button className="w-full">Seleccionar</Button>
         </CardFooter>
       </Card>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar Pack de Servicio</DialogTitle>
-        </DialogHeader>
-        <ServicePackForm mode="edit" servicePackId={pack.id} initialData={pack} onSuccess={() => setIsFormOpen(false)} />
-      </DialogContent>
+      {isAdmin && (
+        <DialogContent>
+            <DialogHeader>
+            <DialogTitle>Editar Pack de Servicio</DialogTitle>
+            </DialogHeader>
+            <ServicePackForm mode="edit" servicePackId={pack.id} initialData={pack} onSuccess={() => setIsFormOpen(false)} />
+        </DialogContent>
+      )}
     </Dialog>
   );
 }
@@ -87,6 +90,7 @@ function ServicePackCard({ pack }: { pack: ServicePack }) {
 function IndividualServiceItem({ service }: { service: IndividualService }) {
     const { userProfile } = useUser();
     const [isFormOpen, setIsFormOpen] = React.useState(false);
+    const isAdmin = userProfile?.role === 'Administrador';
 
     return (
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
@@ -100,19 +104,21 @@ function IndividualServiceItem({ service }: { service: IndividualService }) {
                       <p className="font-semibold">{service.price}</p>
                       <Button size="sm" variant="ghost" className="mt-1">Añadir</Button>
                     </div>
-                    {userProfile?.role === 'Administrador' && (
+                    {isAdmin && (
                         <DialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7"><Edit className="h-4 w-4" /></Button>
                         </DialogTrigger>
                     )}
                 </div>
             </div>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Editar Servicio Individual</DialogTitle>
-                </DialogHeader>
-                <IndividualServiceForm mode="edit" serviceId={service.id} initialData={service} onSuccess={() => setIsFormOpen(false)} />
-            </DialogContent>
+            {isAdmin && (
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Editar Servicio Individual</DialogTitle>
+                    </DialogHeader>
+                    <IndividualServiceForm mode="edit" serviceId={service.id} initialData={service} onSuccess={() => setIsFormOpen(false)} />
+                </DialogContent>
+            )}
         </Dialog>
     )
 }
@@ -120,11 +126,12 @@ function IndividualServiceItem({ service }: { service: IndividualService }) {
 function VirtualChapelPlanCard({ plan }: { plan: VirtualChapelPlan }) {
     const { userProfile } = useUser();
     const [isFormOpen, setIsFormOpen] = React.useState(false);
+    const isAdmin = userProfile?.role === 'Administrador';
 
     return (
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
             <Card className="flex flex-col relative">
-                {userProfile?.role === 'Administrador' && (
+                {isAdmin && (
                     <DialogTrigger asChild>
                         <Button variant="outline" size="icon" className="absolute top-2 right-2 h-7 w-7">
                             <Edit className="h-4 w-4" />
@@ -150,12 +157,14 @@ function VirtualChapelPlanCard({ plan }: { plan: VirtualChapelPlan }) {
                     <Button variant="outline" className="w-full">Seleccionar</Button>
                 </CardFooter>
             </Card>
-             <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Editar Plan de Capilla Virtual</DialogTitle>
-                </DialogHeader>
-                <VirtualChapelPlanForm mode="edit" planId={plan.id} initialData={plan} onSuccess={() => setIsFormOpen(false)} />
-            </DialogContent>
+            {isAdmin && (
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Editar Plan de Capilla Virtual</DialogTitle>
+                    </DialogHeader>
+                    <VirtualChapelPlanForm mode="edit" planId={plan.id} initialData={plan} onSuccess={() => setIsFormOpen(false)} />
+                </DialogContent>
+            )}
         </Dialog>
     )
 }

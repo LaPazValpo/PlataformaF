@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { Edit, MoreHorizontal } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,12 +38,7 @@ function getStockStatus(quantity: number): { text: string; variant: 'default' | 
 }
 
 function InventoryActions({ item }: { item: InventoryItem }) {
-  const { userProfile } = useUser();
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-
-  if (userProfile?.role !== 'Administrador') {
-    return null;
-  }
 
   return (
     <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -57,7 +52,10 @@ function InventoryActions({ item }: { item: InventoryItem }) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Acciones</DropdownMenuLabel>
           <DialogTrigger asChild>
-            <DropdownMenuItem>Editar</DropdownMenuItem>
+            <DropdownMenuItem>
+              <Edit className="mr-2 h-4 w-4" />
+              Editar
+            </DropdownMenuItem>
           </DialogTrigger>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -122,6 +120,7 @@ function InventorySkeleton() {
 export default function InventoryPage() {
   const { data: inventory, loading } = useCollection<InventoryItem>('inventory');
   const { userProfile } = useUser();
+  const isAdmin = userProfile?.role === 'Administrador';
 
   if (loading) {
     return <InventorySkeleton />;
@@ -145,7 +144,7 @@ export default function InventoryPage() {
                 <TableHead>Categoría</TableHead>
                 <TableHead className="text-right">Cantidad</TableHead>
                 <TableHead className="text-center">Estado</TableHead>
-                 {userProfile?.role === 'Administrador' && <TableHead className="text-right">Acciones</TableHead>}
+                 {isAdmin && <TableHead className="text-right">Acciones</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -162,7 +161,7 @@ export default function InventoryPage() {
                     <TableCell className="text-center">
                       <Badge variant={status.variant}>{status.text}</Badge>
                     </TableCell>
-                    {userProfile?.role === 'Administrador' && (
+                    {isAdmin && (
                         <TableCell className="text-right">
                           <InventoryActions item={item} />
                         </TableCell>
