@@ -10,6 +10,7 @@ import { ArrowUp, Briefcase, Users, Wallet } from 'lucide-react';
 import { useCollection } from '@/firebase';
 import type { Prospect, Sale, Seller } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SeedDatabaseButton } from '@/components/common/seed-database-button';
 
 function DashboardSkeleton() {
   return (
@@ -105,6 +106,27 @@ export default function DashboardPage() {
   };
   
   const recentSales = sales.slice(-5).reverse();
+  
+  const allDataLoaded = !loadingSales && !loadingProspects && !loadingSellers;
+  const isDataEmpty = allDataLoaded && sales.length === 0 && prospects.length === 0 && sellers.length === 0;
+
+  if (isDataEmpty) {
+    return (
+        <div className="flex flex-col gap-8 items-center justify-center h-[60vh]">
+            <div className="text-center space-y-4">
+                <PageHeader 
+                    title="Bienvenido al Dashboard"
+                    description="Parece que la base de datos está vacía."
+                />
+                <p className="text-muted-foreground">
+                    Haz clic en el botón de abajo para cargar los datos de ejemplo y ver el dashboard en acción.
+                </p>
+                <SeedDatabaseButton />
+            </div>
+        </div>
+    )
+  }
+
 
   return (
     <div className="flex flex-col gap-8">
