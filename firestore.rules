@@ -62,7 +62,7 @@ service cloud.firestore {
     }
     
     match /sellers/{sellerId} {
-      allow read: if isRole('Administrador') || isRole('Vendedor') || isRole('Vendedor Senior');
+      allow read: if isSignedIn();
       allow write: if isRole('Administrador');
     }
     
