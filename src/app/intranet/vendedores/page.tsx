@@ -7,45 +7,23 @@ import {
   MoreHorizontal,
   Edit,
   Plus,
+  BarChart,
+  Target,
+  DollarSign,
+  TrendingUp,
+  CircleUser,
 } from 'lucide-react';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
 
 import type { Sale, Seller } from '@/lib/types';
 import { useCollection, useUser } from '@/firebase';
 import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import SellerForm from '@/components/intranet/vendedores/SellerForm';
 
 
@@ -61,136 +39,91 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-function SellerActions({ seller }: { seller: SellerPerformance }) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
 
+function SellerProfileModal({ seller, children }: { seller: SellerPerformance, children: React.ReactNode }) {
+    const { userProfile } = useUser();
+    const isAdmin = userProfile?.role === 'Administrador';
+    const [isFormOpen, setIsFormOpen] = React.useState(false);
+
+    const stats = [
+        { icon: BarChart, label: "Ventas (Unidades)", value: seller.sales },
+        { icon: DollarSign, label: "Ventas (Valor)", value: formatCurrency(seller.totalSalesValue) },
+        { icon: Target, label: "Tasa de Conversión", value: `${seller.conversionRate}%` },
+        { icon: TrendingUp, label: "Comisión Ganada", value: formatCurrency(seller.commissionEarned) },
+    ]
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>{children}</DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16">
+                            <AvatarImage src={`https://picsum.photos/seed/${seller.id}/100/100`} />
+                            <AvatarFallback>{seller.initials}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <DialogTitle className="text-2xl">{seller.name}</DialogTitle>
+                            <DialogDescription>{seller.email}</DialogDescription>
+                             <Badge variant={seller.status === 'Activo' ? 'default' : 'secondary'} className="mt-2">{seller.status}</Badge>
+                        </div>
+                    </div>
+                </DialogHeader>
+                <div className="py-4 grid grid-cols-2 gap-4">
+                    {stats.map(stat => (
+                        <div key={stat.label} className="flex flex-col gap-1 p-3 bg-muted/50 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <stat.icon className="h-4 w-4" />
+                                {stat.label}
+                            </div>
+                            <div className="text-xl font-bold">{stat.value}</div>
+                        </div>
+                    ))}
+                </div>
+                {isAdmin && (
+                    <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Editar Vendedor
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Editar Vendedor</DialogTitle>
+                            </DialogHeader>
+                            <SellerForm 
+                              mode="edit" 
+                              sellerId={seller.id} 
+                              initialData={seller}
+                              onSuccess={() => setIsFormOpen(false)}
+                            />
+                        </DialogContent>
+                    </Dialog>
+                )}
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+function SellerCard({ seller }: { seller: SellerPerformance }) {
   return (
-    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Abrir menú</span>
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-          <DialogTrigger asChild>
-            <DropdownMenuItem>
-                <Edit className="mr-2 h-4 w-4" />
-                Editar Vendedor
-            </DropdownMenuItem>
-          </DialogTrigger>
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Editar Vendedor</DialogTitle>
-        </DialogHeader>
-        <SellerForm 
-          mode="edit" 
-          sellerId={seller.id} 
-          initialData={seller}
-          onSuccess={() => setIsEditDialogOpen(false)}
-        />
-      </DialogContent>
-    </Dialog>
+    <SellerProfileModal seller={seller}>
+        <Card className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1">
+          <CardContent className="flex flex-col items-center p-6 text-center">
+            <Avatar className="w-20 h-20 mb-4">
+              <AvatarImage src={`https://picsum.photos/seed/${seller.id}/100/100`} />
+              <AvatarFallback>{seller.initials}</AvatarFallback>
+            </Avatar>
+            <h3 className="font-semibold text-lg">{seller.name}</h3>
+            <p className="text-sm text-muted-foreground">{seller.email}</p>
+            <Badge variant="outline" className="mt-4">{seller.role}</Badge>
+          </CardContent>
+        </Card>
+    </SellerProfileModal>
   );
 }
 
-
-const getColumns = (isAdmin: boolean): ColumnDef<SellerPerformance>[] => [
-  {
-    accessorKey: 'name',
-    header: 'Vendedor',
-    cell: ({ row }) => {
-      const seller = row.original;
-      return (
-        <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={`https://picsum.photos/seed/${seller.id}/40/40`} />
-            <AvatarFallback>{seller.initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-medium">{seller.name}</span>
-            <span className="text-sm text-muted-foreground">{seller.email}</span>
-          </div>
-        </div>
-      );
-    },
-  },
-  {
-    accessorKey: 'sales',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Ventas (Unidades)
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-center">{row.getValue('sales')}</div>,
-  },
-  {
-    accessorKey: 'totalSalesValue',
-    header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          className="text-right w-full"
-        >
-          Ventas (Valor)
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-    cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('totalSalesValue'))}</div>,
-  },
-  {
-    accessorKey: 'conversionRate',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Tasa de Conversión
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-center">{row.getValue('conversionRate')}%</div>,
-  },
-  {
-    accessorKey: 'commissionEarned',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        className="text-right w-full"
-      >
-        Comisión Ganada
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div className="text-right font-medium">{formatCurrency(row.getValue('commissionEarned'))}</div>,
-  },
-  {
-    accessorKey: 'status',
-    header: 'Estado',
-    cell: ({ row }) => (
-      <div className="capitalize">
-        <Badge variant={row.getValue('status') === 'Activo' ? 'default' : 'secondary'}>
-          {row.getValue('status') as string}
-        </Badge>
-      </div>
-    ),
-  },
-  ...(isAdmin ? [{
-    id: "actions",
-    cell: ({ row }: { row: { original: SellerPerformance } }) => <SellerActions seller={row.original} />,
-  } as ColumnDef<SellerPerformance>] : []),
-];
 
 function VendedoresPageSkeleton() {
     return (
@@ -203,29 +136,17 @@ function VendedoresPageSkeleton() {
                 <Skeleton className="h-10 w-full max-w-sm" />
                 <Skeleton className="h-10 w-36 ml-auto" />
             </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            {[...Array(7)].map((_, i) => (
-                                <TableHead key={i}>
-                                    <Skeleton className="h-5 w-full" />
-                                </TableHead>
-                            ))}
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {[...Array(5)].map((_, i) => (
-                            <TableRow key={i}>
-                                {[...Array(7)].map((_, j) => (
-                                    <TableCell key={j}>
-                                        <Skeleton className="h-5 w-full" />
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                    <Card key={i}>
+                        <CardContent className="flex flex-col items-center p-6 text-center">
+                            <Skeleton className="w-20 h-20 rounded-full mb-4" />
+                            <Skeleton className="h-6 w-3/4 mb-2" />
+                            <Skeleton className="h-4 w-full mb-4" />
+                            <Skeleton className="h-6 w-20" />
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         </div>
     )
@@ -237,13 +158,9 @@ export default function VendedoresPage() {
   const { data: sellers, loading: loadingSellers } = useCollection<Seller>('sellers');
   
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [searchTerm, setSearchTerm] = React.useState('');
   
   const isAdmin = userProfile?.role === 'Administrador';
-  const columns = React.useMemo(() => getColumns(isAdmin), [isAdmin]);
 
   const sellerPerformanceData = React.useMemo(() => {
     if (loadingSellers || loadingSales || !sellers || !sales) return [];
@@ -263,24 +180,14 @@ export default function VendedoresPage() {
 
   }, [sellers, sales, loadingSellers, loadingSales]);
 
-  const table = useReactTable({
-    data: sellerPerformanceData,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
+  const filteredSellers = React.useMemo(() => {
+    if (!searchTerm) return sellerPerformanceData;
+    return sellerPerformanceData.filter(seller => 
+        seller.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        seller.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sellerPerformanceData, searchTerm]);
+
 
   if (loadingSales || loadingSellers) {
     return <VendedoresPageSkeleton />;
@@ -295,38 +202,11 @@ export default function VendedoresPage() {
       <div className="flex items-center py-4">
         <Input
           placeholder="Filtrar por vendedor..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={event => table.getColumn('name')?.setFilterValue(event.target.value)}
+          value={searchTerm}
+          onChange={event => setSearchTerm(event.target.value)}
           className="max-w-sm"
         />
         <div className="ml-auto flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  Columnas <ChevronDown className="ml-2 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {table
-                  .getAllColumns()
-                  .filter(column => column.getCanHide())
-                  .map(column => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={value => column.toggleVisibility(!!value)}
-                    >
-                      {column.id === 'name' ? 'Vendedor' :
-                      column.id === 'sales' ? 'Ventas (Unidades)' :
-                      column.id === 'totalSalesValue' ? 'Ventas (Valor)' :
-                      column.id === 'conversionRate' ? 'Tasa de Conversión' :
-                      column.id === 'commissionEarned' ? 'Comisión Ganada' :
-                      column.id === 'status' ? 'Estado' : column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
             {isAdmin && (
                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
@@ -345,42 +225,16 @@ export default function VendedoresPage() {
             )}
         </div>
       </div>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  Sin resultados.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {filteredSellers.map(seller => (
+            <SellerCard key={seller.id} seller={seller} />
+        ))}
       </div>
+      {filteredSellers.length === 0 && (
+          <div className="col-span-full text-center text-muted-foreground mt-10">
+              No se encontraron vendedores.
+          </div>
+      )}
     </div>
   );
 }
