@@ -1,0 +1,280 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user of the application.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the user." },
+        "role": { "type": "string", "description": "Role of the user (e.g., Administrador, Vendedor).", "enum": ["Administrador", "Vendedor", "Vendedor Senior"] },
+        "email": { "type": "string", "format": "email", "description": "Email of the user." },
+        "name": { "type": "string", "description": "Name of the user." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "role", "email", "name"]
+    },
+    "Prospect": {
+      "title": "Prospect",
+      "description": "Represents a potential customer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "prospectId": { "type": "string" },
+        "clientName": { "type": "string" },
+        "contactNumber": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "sellerId": { "type": "string" },
+        "sellerName": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "prospectId", "clientName", "contactNumber", "date"]
+    },
+    "Proposal": {
+      "title": "Proposal",
+      "description": "Represents a sales proposal sent to a prospect.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "services": { "type": "array", "items": { "type": "string" } },
+        "seller": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Propuesta Enviada", "En Negociación", "Aceptada", "Rechazada"] },
+        "contactNumber": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "clientName", "services", "seller", "date", "status"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Represents a completed sale.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "services": { "type": "array", "items": { "type": "string" } },
+        "seller": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pagado", "Pendiente de Pago"] },
+        "totalAmount": { "type": "number" },
+        "contactNumber": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "clientName", "services", "seller", "date", "status", "totalAmount"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Represents a customer who has made a purchase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "seller": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "phone"]
+    },
+    "Seller": {
+      "title": "Seller",
+      "description": "Represents a salesperson.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "initials": { "type": "string" },
+        "sales": { "type": "number" },
+        "status": { "type": "string", "enum": ["Activo", "Inactivo"] },
+        "commission": { "type": "number" },
+        "conversionRate": { "type": "number" },
+        "avatar": { "type": "string" },
+        "role": { "type": "string", "enum": ["Vendedor", "Vendedor Senior"] },
+        "user": { "type": "string" },
+        "pass": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "status"]
+    },
+    "ServicePack": {
+      "title": "ServicePack",
+      "description": "Represents a package of funeral services.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "string" },
+        "priceValue": { "type": "number" },
+        "description": { "type": "string" },
+        "idealFor": { "type": "string" },
+        "features": { "type": "array", "items": { "$ref": "#/entities/ServicePackFeature" } },
+        "recommended": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "priceValue", "description", "features"]
+    },
+    "ServicePackFeature": {
+      "title": "ServicePackFeature",
+      "description": "A feature within a service pack.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" }
+      },
+      "required": ["title"]
+    },
+    "VirtualChapelPlan": {
+      "title": "VirtualChapelPlan",
+      "description": "Represents a virtual chapel plan.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "price": { "type": "string" },
+        "priceValue": { "type": "number" },
+        "description": { "type": "string" },
+        "features": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "priceValue", "features"]
+    },
+    "IndividualService": {
+      "title": "IndividualService",
+      "description": "Represents an individual service that can be purchased.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "string" },
+        "priceValue": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "priceValue"]
+    },
+    "VirtualTomb": {
+      "title": "VirtualTomb",
+      "description": "Represents a virtual tomb in the chapel.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "birthDate": { "type": "string", "format": "date" },
+        "passingDate": { "type": "string", "format": "date" },
+        "mainImage": { "type": "string" },
+        "gallery": { "type": "array", "items": { "type": "string" } },
+        "dedications": { "type": "array", "items": { "$ref": "#/entities/Dedication" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "birthDate", "passingDate"]
+    },
+    "Dedication": {
+      "title": "Dedication",
+      "description": "A dedication message for a virtual tomb.",
+      "type": "object",
+      "properties": {
+        "author": { "type": "string" },
+        "message": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["author", "message", "date"]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "Represents an item in the inventory.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "quantity": { "type": "number" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "category", "quantity"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Represents a customer testimonial.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "relation": { "type": "string" },
+        "quote": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "quote"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Stores user profile information."
+    },
+    "/prospects/{prospectId}": {
+      "schema": { "$ref": "#/entities/Prospect" },
+      "description": "Stores information about potential customers."
+    },
+    "/proposals/{proposalId}": {
+      "schema": { "$ref": "#/entities/Proposal" },
+      "description": "Stores sales proposals."
+    },
+    "/sales/{saleId}": {
+      "schema": { "$ref": "#/entities/Sale" },
+      "description": "Stores completed sales records."
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Stores information about paying customers."
+    },
+    "/sellers/{sellerId}": {
+      "schema": { "$ref": "#/entities/Seller" },
+      "description": "Stores information about salespersons."
+    },
+    "/servicePacks/{packId}": {
+      "schema": { "$ref": "#/entities/ServicePack" },
+      "description": "Stores available funeral service packages."
+    },
+    "/virtualChapelPlans/{planId}": {
+      "schema": { "$ref": "#/entities/VirtualChapelPlan" },
+      "description": "Stores plans for the virtual chapel."
+    },
+    "/individualServices/{serviceId}": {
+      "schema": { "$ref": "#/entities/IndividualService" },
+      "description": "Stores individual services."
+    },
+    "/virtualTombs/{tombId}": {
+      "schema": { "$ref": "#/entities/VirtualTomb" },
+      "description": "Stores virtual tombs for the chapel."
+    },
+    "/inventory/{itemId}": {
+      "schema": { "$ref": "#/entities/InventoryItem" },
+      "description": "Stores inventory items."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Stores customer testimonials."
+    }
+  }
+}

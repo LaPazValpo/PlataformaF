@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster"
 import { RootLayoutInner } from './layout-inner';
+import FirebaseClientProvider from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'La Paz de Cristo - Servicios Funerarios',
@@ -25,8 +25,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <RootLayoutInner>{children}</RootLayoutInner>
-        <Toaster />
+        <FirebaseClientProvider>
+          <RootLayoutInner>{children}</RootLayoutInner>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
