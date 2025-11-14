@@ -92,49 +92,35 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
       handleUpdateProspect('Contactado', user.uid, userProfile.name);
   }
 
-  const handleLoseSale = async () => {
-    if (!db) return;
-    setIsUpdating(true);
-    const prospectRef = doc(db, 'prospects', prospect.id);
-    try {
-        await updateDoc(prospectRef, { status: 'Venta Perdida' });
-        toast({ title: 'Venta marcada como perdida' });
-    } catch(e) {
-        // handle error
-    } finally {
-        setIsUpdating(false);
-    }
+  const handleDeleteProspect = async () => {
+      if (!db) return;
+      
+      setIsUpdating(true);
+      const prospectRef = doc(db, 'prospects', prospect.id);
+      
+      deleteDoc(prospectRef)
+          .then(() => {
+              toast({
+                  title: 'Prospecto Eliminado',
+                  description: `El prospecto ${prospect.clientName} ha sido eliminado.`,
+              });
+          })
+          .catch((serverError) => {
+              const permissionError = new FirestorePermissionError({
+                  path: prospectRef.path,
+                  operation: 'delete',
+              });
+              errorEmitter.emit('permission-error', permissionError);
+              toast({
+                  variant: 'destructive',
+                  title: 'Error al eliminar',
+                  description: 'No tienes permisos para eliminar este prospecto.',
+              });
+          })
+          .finally(() => {
+              setIsUpdating(false);
+          });
   };
-
-    const handleDeleteProspect = async () => {
-        if (!db) return;
-        
-        setIsUpdating(true);
-        const prospectRef = doc(db, 'prospects', prospect.id);
-        
-        deleteDoc(prospectRef)
-            .then(() => {
-                toast({
-                    title: 'Prospecto Eliminado',
-                    description: `El prospecto ${prospect.clientName} ha sido eliminado.`,
-                });
-            })
-            .catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: prospectRef.path,
-                    operation: 'delete',
-                });
-                errorEmitter.emit('permission-error', permissionError);
-                toast({
-                    variant: 'destructive',
-                    title: 'Error al eliminar',
-                    description: 'No tienes permisos para eliminar este prospecto.',
-                });
-            })
-            .finally(() => {
-                setIsUpdating(false);
-            });
-    };
 
   return (
     <Card>
@@ -212,25 +198,6 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
                         />
                     </DialogContent>
                 </Dialog>
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="outline" className="w-full">
-                            <XCircle className="mr-2" /> Marcar Venta Perdida
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>¿Marcar como Venta Perdida?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Esta acción cambiará el estado del prospecto a "Venta Perdida" y lo moverá del pipeline activo.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleLoseSale}>Confirmar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
               </div>
             )}
           </div>
