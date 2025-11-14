@@ -121,6 +121,25 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
               setIsUpdating(false);
           });
   };
+  
+  const handleProposalCreated = (newProposalId?: string) => {
+    setIsCreateProposalOpen(false);
+    if (!newProposalId) return;
+
+    if (!prospect.contactNumber) {
+        toast({
+            variant: "destructive",
+            title: "Número de contacto no disponible",
+            description: "El prospecto no tiene un número de contacto para enviar por WhatsApp.",
+        });
+        return;
+    }
+
+    const cleanPhoneNumber = prospect.contactNumber.replace(/[^0-9]/g, '');
+    const proposalUrl = `${window.location.origin}/proposal/${newProposalId}`;
+    const message = encodeURIComponent(`Hola ${prospect.clientName},\n\nTe envío la propuesta de servicios funerarios que conversamos. Puedes revisarla en el siguiente enlace:\n\n${proposalUrl}\n\nQuedo a tu disposición para cualquier duda.\n\nSaludos,\n${userProfile?.name}`);
+    window.open(`https://wa.me/${cleanPhoneNumber}?text=${message}`, '_blank');
+  };
 
   return (
     <Card>
@@ -173,7 +192,7 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
                               contactNumber: prospect.contactNumber,
                               email: prospect.email
                           }}
-                          onSuccess={() => setIsCreateProposalOpen(false)}
+                          onSuccess={handleProposalCreated}
                       />
                   </DialogContent>
               </Dialog>

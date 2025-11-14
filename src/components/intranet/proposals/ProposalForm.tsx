@@ -49,7 +49,7 @@ export default function ProposalForm({
   proposalId?: string;
   prospectId?: string;
   initialData?: any;
-  onSuccess?: () => void;
+  onSuccess?: (newProposalId?: string) => void;
 }) {
   const db = useFirestore();
   const { user, userProfile } = useUser();
@@ -141,7 +141,7 @@ export default function ProposalForm({
       
       toast({ title: `Propuesta ${mode === 'create' ? 'creada' : 'actualizada'} con éxito` });
       
-      onSuccess?.();
+      onSuccess?.(newProposalId);
 
     } catch (e: any) {
       const isPermissionError = e.code === 'permission-denied';
@@ -232,12 +232,12 @@ export default function ProposalForm({
       </div>
 
       <div className="flex justify-end gap-2">
-         <Button variant="outline" onClick={onSuccess}>Cancelar</Button>
+         <Button variant="outline" onClick={() => onSuccess?.()}>Cancelar</Button>
         <Button variant="default" onClick={handleSubmit} disabled={loading || !form.selectedPackTitle}>
           {loading
             ? 'Guardando...'
             : mode === 'create'
-            ? 'Crear Propuesta'
+            ? 'Crear y Enviar Propuesta'
             : 'Guardar Cambios'}
         </Button>
       </div>
