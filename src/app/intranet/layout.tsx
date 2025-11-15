@@ -56,8 +56,8 @@ function PazFinalLogo() {
       <Image 
         src={logo} 
         alt="Paz Final Logo" 
-        width={140} 
-        height={46} 
+        width={245} 
+        height={81} 
         className="invert brightness-100"
       />
     </div>
