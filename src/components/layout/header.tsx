@@ -16,16 +16,13 @@ import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import logo from '@/logo.png';
 
-const navLinks = [
-  { href: '/', label: 'Inicio' },
-  { href: '/blog', label: 'Blog' },
-];
+const navLinks = [{ href: '/', label: 'Inicio' }];
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  
+
   const isIntranet = pathname.startsWith('/intranet');
 
   useEffect(() => {
@@ -34,15 +31,15 @@ const Header = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); 
-    
+    handleScroll();
+
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   if (isIntranet) {
     return null;
   }
-  
+
   return (
     <header
       className={cn(
@@ -65,27 +62,34 @@ const Header = () => {
                 <SheetTitle className="sr-only">Menú de Navegación</SheetTitle>
               </SheetHeader>
               <nav className="mt-8 flex flex-col space-y-4">
-                {navLinks.map(({ href, label }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={cn(
-                      'text-lg text-muted-foreground hover:text-primary',
-                      pathname === href && 'text-primary font-semibold'
-                    )}
-                  >
-                    {label}
-                  </Link>
-                ))}
-                  <Link
-                    href="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className='text-lg text-muted-foreground hover:text-primary flex items-center'
-                  >
-                    <Lock className="mr-2 h-4 w-4" />
-                    Intranet
-                  </Link>
+                <Link
+                  href="/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    'text-lg text-muted-foreground hover:text-primary',
+                    pathname === '/' && 'text-primary font-semibold'
+                  )}
+                >
+                  Inicio
+                </Link>
+                <Link
+                  href="/blog"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={cn(
+                    'text-lg text-muted-foreground hover:text-primary',
+                    pathname === '/blog' && 'text-primary font-semibold'
+                  )}
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg text-muted-foreground hover:text-primary flex items-center"
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Intranet
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>
@@ -93,7 +97,7 @@ const Header = () => {
 
         {/* Desktop Navigation Left */}
         <nav className="hidden items-center space-x-6 md:flex">
-          {navLinks.map((item, index) => {
+          {navLinks.map((item) => {
             return (
               <Link
                 key={item.href}
@@ -105,29 +109,38 @@ const Header = () => {
               >
                 {item.label}
               </Link>
-            )
+            );
           })}
         </nav>
 
         {/* Centered Logo */}
-         <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <Image
-                  src={logo}
-                  alt="Paz Final Logo"
-                  width={245}
-                  height={81}
-                  className="object-contain"
-                  priority
-                />
+        <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <Image
+            src={logo}
+            alt="Paz Final Logo"
+            width={245}
+            height={81}
+            className="object-contain"
+            priority
+          />
         </Link>
 
         {/* Desktop Navigation Right */}
         <nav className="hidden items-center space-x-6 md:flex">
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/login">
-                <Lock className="mr-2 h-4 w-4" /> Intranet
-              </Link>
-            </Button>
+          <Link
+            href="/blog"
+            className={cn(
+              'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
+              pathname === '/blog' && 'text-primary'
+            )}
+          >
+            Blog
+          </Link>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/login">
+              <Lock className="mr-2 h-4 w-4" /> Intranet
+            </Link>
+          </Button>
         </nav>
 
         {/* This div is for mobile layout to balance the menu button */}
