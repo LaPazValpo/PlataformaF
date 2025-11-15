@@ -51,7 +51,7 @@ const Header = () => {
         isScrolled ? 'h-20' : 'h-28'
       )}
     >
-      <div className="container mx-auto flex h-full items-center justify-between px-4">
+      <div className="container relative mx-auto flex h-full items-center justify-between px-4">
         {/* Mobile Menu */}
         <div className="md:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
@@ -112,7 +112,7 @@ const Header = () => {
         </nav>
 
         {/* Centered Logo */}
-         <Link href="/">
+         <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
               <Image
                   src={logo}
                   alt="Paz Final Logo"
