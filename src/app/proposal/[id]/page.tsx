@@ -96,9 +96,9 @@ function ProposalPageSkeleton() {
 }
 
 
-function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
+export default function ProposalPage({ params }: { params?: { id: string } }) {
   const pageParams = useParams();
-  const proposalId = proposalIdFromProps || (pageParams.id as string);
+  const proposalId = params?.id || (pageParams.id as string);
 
   const db = useFirestore();
   const { toast } = useToast();
@@ -421,8 +421,4 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
       </div>
     </div>
   );
-}
-
-export default function ProposalPageWrapper(props: { params?: { id: string } }) {
-  return <QuotationPage id={props.params?.id} />;
 }
