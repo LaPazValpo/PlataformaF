@@ -125,21 +125,15 @@ const Header = () => {
 
         {/* Desktop Navigation Right */}
         <nav className="hidden items-center space-x-6 md:flex">
-          {navLinks.map((item, index) => {
-             if (index < 2) return null; // Only show Contacto
-             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-                  pathname === item.href && 'text-primary'
-                )}
-              >
-                {item.label}
-              </Link>
-            )
-          })}
+           <Link
+              href="/#contacto"
+              className={cn(
+                'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
+                pathname === "/#contacto" && 'text-primary'
+              )}
+            >
+              Contacto
+            </Link>
             <Button variant="outline" size="sm" asChild>
               <Link href="/login">
                 <Lock className="mr-2 h-4 w-4" /> Intranet
