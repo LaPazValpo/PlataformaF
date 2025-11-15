@@ -111,11 +111,12 @@ const Header = () => {
         </nav>
 
         {/* Centered Logo */}
-         <Link href="/" className="relative block h-28 w-auto">
+         <Link href="/">
               <Image
                   src="/logo.png"
                   alt="Paz Final Logo"
-                  fill
+                  width={140}
+                  height={46}
                   className="object-contain"
                   priority
                 />
