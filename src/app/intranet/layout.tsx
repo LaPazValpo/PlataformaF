@@ -38,16 +38,16 @@ import logo from '@/logo.png';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { type: 'divider', label: 'Ventas' },
+  { type: 'divider', label: 'Gestión de Ventas' },
   { href: '/intranet/sales', icon: HandCoins, label: 'Ventas' },
   { href: '/intranet/clients', icon: Users, label: 'Clientes' },
-  { type: 'divider', label: 'Gestión' },
   { href: '/intranet/vendedores', icon: Briefcase, label: 'Vendedores' },
-  { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
-  { type: 'divider', label: 'Contenido' },
+  { type: 'divider', label: 'Catálogo' },
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
-  { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
+  { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
   { href: '/intranet/chapel', icon: Church, label: 'Capilla Virtual' },
+  { type: 'divider', label: 'Herramientas' },
+  { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
 ];
 
 function PazFinalLogo() {
