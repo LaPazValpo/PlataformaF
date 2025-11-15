@@ -96,7 +96,7 @@ const Header = () => {
         {/* Desktop Navigation */}
         <nav className="hidden items-center space-x-6 md:flex">
           {navLinks.map((item, index) => {
-            if (index > 0) return null;
+            if (index > 1) return null; // Only show Inicio and Blog
             return (
               <Link
                 key={item.href}
@@ -119,7 +119,7 @@ const Header = () => {
                     src="/logo.png"
                     alt="Paz Final Logo"
                     fill
-                    className="object-contain invert"
+                    className="object-contain"
                     priority
                   />
           </Link>
@@ -127,7 +127,7 @@ const Header = () => {
 
         <nav className="hidden items-center space-x-6 md:flex">
           {navLinks.map((item, index) => {
-             if (index === 0) return null; 
+             if (index < 2) return null; // Only show Contacto
              return (
               <Link
                 key={item.href}
@@ -148,6 +148,7 @@ const Header = () => {
             </Button>
         </nav>
 
+        {/* This div is for mobile layout to balance the menu button */}
         <div className="w-10 md:hidden" />
       </div>
     </header>
