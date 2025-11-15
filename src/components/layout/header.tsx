@@ -43,8 +43,6 @@ const Header = () => {
     return null;
   }
   
-  const logoHeight = isScrolled ? 40 : 50;
-
   return (
     <header
       className={cn(
@@ -119,7 +117,7 @@ const Header = () => {
                     src="/logo.png"
                     alt="Paz Final Logo"
                     width={140}
-                    height={logoHeight}
+                    height={46}
                     className="object-contain"
                     priority
                   />
