@@ -15,6 +15,7 @@ import {
   Warehouse,
   Briefcase,
   LogOut,
+  ImageIcon,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -46,6 +47,7 @@ const navItems = [
   { href: '/intranet/services', icon: Package, label: 'Servicios' },
   { href: '/intranet/inventory', icon: Warehouse, label: 'Inventario' },
   { href: '/intranet/chapel', icon: Church, label: 'Capilla Virtual' },
+  { href: '/intranet/gallery', icon: ImageIcon, label: 'Galería' },
   { type: 'divider', label: 'Herramientas' },
   { href: '/intranet/content', icon: Sparkles, label: 'Contenido IA' },
 ];

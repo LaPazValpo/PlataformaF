@@ -10,11 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import type { ServicePack } from '@/lib/types';
+import type { ServicePack, ServicePackFeature } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
+import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 type FormMode = 'create' | 'edit';
-type ServicePackFormInput = Omit<ServicePack, 'id' | 'createdAt' | 'updatedAt' | 'features'> & { featuresText: string };
+type ServicePackFormInput = Omit<ServicePack, 'id' | 'createdAt' | 'updatedAt'>;
 
 export default function ServicePackForm({
   mode,
@@ -36,31 +40,35 @@ export default function ServicePackForm({
     priceValue: initialData?.priceValue ?? 0,
     description: initialData?.description ?? '',
     idealFor: initialData?.idealFor ?? '',
-    featuresText: (initialData?.features ?? []).map(f => `${f.title}|${f.image}`).join('\n'),
+    features: initialData?.features ?? [],
     recommended: initialData?.recommended ?? false,
   });
 
   const handleChange = (key: keyof ServicePackFormInput, value: any) =>
     setForm((p) => ({ ...p, [key]: value }));
 
+  const handleFeatureChange = (index: number, field: keyof ServicePackFeature, value: string) => {
+      const newFeatures = [...form.features];
+      newFeatures[index] = { ...newFeatures[index], [field]: value };
+      handleChange('features', newFeatures);
+  }
+
+  const handleAddFeature = () => {
+      handleChange('features', [...form.features, { title: '', description: '', image: '' }]);
+  }
+
+  const handleRemoveFeature = (index: number) => {
+      const newFeatures = form.features.filter((_, i) => i !== index);
+      handleChange('features', newFeatures);
+  }
+
   const handleSubmit = async () => {
     if (!db || (mode === 'edit' && !servicePackId)) return;
     setLoading(true);
 
-    const features = form.featuresText.split('\n').map(line => {
-        const [title, image] = line.split('|');
-        return { title: title?.trim() ?? '', image: image?.trim() ?? '', description: '' };
-    }).filter(f => f.title && f.image);
-
-
     const payload = {
-      title: form.title,
-      price: form.price,
+      ...form,
       priceValue: Number(form.priceValue),
-      description: form.description,
-      idealFor: form.idealFor,
-      features: features,
-      recommended: form.recommended,
       updatedAt: new Date().toISOString(),
     };
 
@@ -107,20 +115,50 @@ export default function ServicePackForm({
           <Label>Descripción</Label>
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
         </div>
-        <div className="col-span-2">
-          <Label>Características del Carrusel (una por línea)</Label>
-          <Textarea 
-            value={form.featuresText} 
-            onChange={(e) => handleChange('featuresText', e.target.value)} 
-            rows={8} 
-            placeholder="Urna de pino fino|4&#10;Arreglo floral|5&#10;Carroza de lujo|15"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            <b>Instrucciones:</b><br/>
-            1. Añada nuevas imágenes al archivo <b>/src/lib/placeholder-images.json</b>.<br/>
-            2. Use el formato: <b>Texto de la Característica|ID_de_la_Imagen</b> para cada línea.
-          </p>
+        
+        <div className="col-span-2 space-y-4">
+            <div className='flex justify-between items-center'>
+                <Label>Características del Carrusel</Label>
+                <Button variant="outline" size="sm" onClick={handleAddFeature}>
+                    <Plus className="mr-2 h-4 w-4" /> Añadir
+                </Button>
+            </div>
+            <Card className="p-4 max-h-64 overflow-y-auto">
+                <CardContent className="p-0 space-y-4">
+                    {form.features.map((feature, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                            <Input 
+                                placeholder="Título de la característica" 
+                                value={feature.title}
+                                onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
+                                className="flex-grow"
+                            />
+                             <Select value={feature.image} onValueChange={(value) => handleFeatureChange(index, 'image', value)}>
+                                <SelectTrigger className="w-[280px]">
+                                    <SelectValue placeholder="Seleccionar imagen..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {PlaceHolderImages.map((img) => (
+                                        <SelectItem key={img.id} value={img.id}>
+                                            {img.description} (ID: {img.id})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <Button variant="ghost" size="icon" onClick={() => handleRemoveFeature(index)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </div>
+                    ))}
+                     {form.features.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                            No hay características. Haz clic en "Añadir" para empezar.
+                        </p>
+                    )}
+                </CardContent>
+            </Card>
         </div>
+
         <div className="flex items-center space-x-2">
           <Switch id="recommended" checked={form.recommended} onCheckedChange={(v) => handleChange('recommended', v)} />
           <Label htmlFor="recommended">Recomendado</Label>
