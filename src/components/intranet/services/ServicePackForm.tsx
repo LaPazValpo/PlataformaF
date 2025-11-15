@@ -14,7 +14,7 @@ import type { ServicePack } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
 
 type FormMode = 'create' | 'edit';
-type ServicePackFormInput = Omit<ServicePack, 'id' | 'createdAt' | 'updatedAt' | 'features'> & { featuresCsv: string };
+type ServicePackFormInput = Omit<ServicePack, 'id' | 'createdAt' | 'updatedAt' | 'features'> & { featuresText: string };
 
 export default function ServicePackForm({
   mode,
@@ -36,7 +36,7 @@ export default function ServicePackForm({
     priceValue: initialData?.priceValue ?? 0,
     description: initialData?.description ?? '',
     idealFor: initialData?.idealFor ?? '',
-    featuresCsv: (initialData?.features ?? []).map(f => f.title).join(', '),
+    featuresText: (initialData?.features ?? []).map(f => `${f.title}|${f.image}`).join('\n'),
     recommended: initialData?.recommended ?? false,
   });
 
@@ -47,14 +47,19 @@ export default function ServicePackForm({
     if (!db || (mode === 'edit' && !servicePackId)) return;
     setLoading(true);
 
-    // This is a simplified update. A real implementation would need to handle features objects properly.
+    const features = form.featuresText.split('\n').map(line => {
+        const [title, image] = line.split('|');
+        return { title: title?.trim() ?? '', image: image?.trim() ?? '', description: '' };
+    }).filter(f => f.title);
+
+
     const payload = {
       title: form.title,
       price: form.price,
       priceValue: Number(form.priceValue),
       description: form.description,
       idealFor: form.idealFor,
-      'features': form.featuresCsv.split(',').map(s => ({ title: s.trim(), image: '1', description: 'desc' })), // Simplified
+      features: features,
       recommended: form.recommended,
       updatedAt: new Date().toISOString(),
     };
@@ -103,8 +108,11 @@ export default function ServicePackForm({
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
         </div>
         <div className="col-span-2">
-          <Label>Características (separadas por coma)</Label>
-          <Textarea value={form.featuresCsv} onChange={(e) => handleChange('featuresCsv', e.target.value)} />
+          <Label>Características (una por línea, formato: Título|ID_Imagen)</Label>
+          <Textarea value={form.featuresText} onChange={(e) => handleChange('featuresText', e.target.value)} rows={8} />
+          <p className="text-xs text-muted-foreground mt-1">
+            Ejemplo: Urna de pino fino|4
+          </p>
         </div>
         <div className="flex items-center space-x-2">
           <Switch id="recommended" checked={form.recommended} onCheckedChange={(v) => handleChange('recommended', v)} />

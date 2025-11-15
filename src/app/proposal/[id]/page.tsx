@@ -38,6 +38,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
 import logo from '@/logo.png';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
 
@@ -68,10 +70,7 @@ function ProposalPageSkeleton() {
                                 </div>
                              </CardHeader>
                              <CardContent>
-                                <Skeleton className="h-4 w-24 mb-2" />
-                                <div className="space-y-1 columns-2">
-                                  {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-5 w-full" />)}
-                                </div>
+                                <Skeleton className="h-[250px] w-full" />
                              </CardContent>
                              <CardFooter className="bg-slate-100 p-4 flex justify-end">
                                 <Skeleton className="h-7 w-28" />
@@ -296,15 +295,44 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
                                   </div>
                                 </CardHeader>
                                 <CardContent>
-                                    <h4 className="font-semibold text-sm mb-2">Incluye:</h4>
-                                    <ul className="space-y-1 text-sm text-muted-foreground columns-2">
-                                        {mainPack.features.map((feature, index) => (
-                                            <li key={index} className="flex items-center">
-                                                <CheckCircle className="h-4 w-4 mr-2 text-green-600 flex-shrink-0"/>
-                                                {feature.title}
-                                            </li>
-                                        ))}
-                                    </ul>
+                                    <h4 className="font-semibold text-sm mb-4">Galería de Servicios Incluidos</h4>
+                                    <Carousel
+                                        opts={{
+                                            align: "start",
+                                            loop: true,
+                                        }}
+                                        className="w-full group"
+                                    >
+                                        <CarouselContent>
+                                            {mainPack.features.map((feature, index) => {
+                                                const image = PlaceHolderImages.find(p => p.id === feature.image);
+                                                if (!image) return null;
+                                                return (
+                                                    <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+                                                        <div className="p-1">
+                                                            <Card className='overflow-hidden'>
+                                                                <CardContent className="flex aspect-video items-center justify-center p-0 relative">
+                                                                     <Image 
+                                                                        src={image.imageUrl} 
+                                                                        alt={feature.title} 
+                                                                        width={600} 
+                                                                        height={400} 
+                                                                        className="object-cover w-full h-full"
+                                                                        data-ai-hint={image.imageHint}
+                                                                    />
+                                                                    <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white p-2 text-center">
+                                                                        <p className="text-sm font-semibold">{feature.title}</p>
+                                                                    </div>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </div>
+                                                    </CarouselItem>
+                                                )
+                                            })}
+                                        </CarouselContent>
+                                        <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </Carousel>
                                 </CardContent>
                                  <CardFooter className="bg-slate-100 p-4 flex justify-end">
                                     <p className="text-lg font-bold text-slate-800">{mainPack.price}</p>
