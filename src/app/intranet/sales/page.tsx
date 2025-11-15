@@ -517,7 +517,6 @@ export default function SalesPage() {
 
        <Dialog open={isPublicViewOpen} onOpenChange={setIsPublicViewOpen}>
             <DialogContent className="max-w-4xl p-0">
-                 {/* El componente ProposalPage necesita un objeto `params` simulado */}
                  {selectedProposal && (
                     <div className='max-h-[90vh] overflow-y-auto'>
                          <ProposalPage params={{ id: selectedProposal.id }} />
