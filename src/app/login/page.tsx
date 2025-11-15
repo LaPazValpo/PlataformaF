@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   Form,
   FormControl,
@@ -137,8 +138,14 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Intranet Paz Final</CardTitle>
+        <CardHeader className="text-center space-y-4">
+          <Image 
+            src="/logo.png" 
+            alt="Paz Final Logo"
+            width={200}
+            height={66}
+            className="mx-auto"
+          />
           <CardDescription>
             Introduce tus credenciales para acceder al panel.
           </CardDescription>

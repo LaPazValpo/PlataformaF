@@ -245,10 +245,9 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
                 <Image
                     src="/logo.png"
                     alt="La Paz de Cristo Logo"
-                    width={157.5}
-                    height={157.5}
-                    className="mx-auto mb-4 object-contain brightness-100 invert"
-                    unoptimized
+                    width={150}
+                    height={50}
+                    className="mx-auto mb-4 object-contain brightness-0 invert"
                 />
                 <h1 className="font-headline text-4xl">Propuesta de Servicios Funerarios</h1>
                 <p className="text-lg text-slate-300 mt-2">Preparada especialmente para: <span className="font-bold">{proposal.clientName}</span></p>
@@ -398,5 +397,3 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
 export default function ProposalPageWrapper(props: { params?: { id: string } }) {
   return <QuotationPage id={props.params?.id} />;
 }
-
-    
