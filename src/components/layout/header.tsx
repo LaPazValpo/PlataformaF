@@ -119,7 +119,7 @@ const Header = () => {
                     src="/logo.png"
                     alt="Paz Final Logo"
                     fill
-                    className="object-contain"
+                    className="object-contain invert"
                     priority
                   />
           </Link>
