@@ -113,10 +113,12 @@ export default function ServicePackForm({
             value={form.featuresText} 
             onChange={(e) => handleChange('featuresText', e.target.value)} 
             rows={8} 
-            placeholder="Urna de pino fino|4"
+            placeholder="Urna de pino fino|4&#10;Arreglo floral|5&#10;Carroza de lujo|15"
           />
           <p className="text-xs text-muted-foreground mt-1">
-            Formato: <b>Texto de la Característica|ID_de_la_Imagen</b>. El ID de la imagen proviene del archivo <b>placeholder-images.json</b>.
+            <b>Instrucciones:</b><br/>
+            1. Añada nuevas imágenes al archivo <b>/src/lib/placeholder-images.json</b>.<br/>
+            2. Use el formato: <b>Texto de la Característica|ID_de_la_Imagen</b> para cada línea.
           </p>
         </div>
         <div className="flex items-center space-x-2">
