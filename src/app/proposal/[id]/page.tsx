@@ -12,7 +12,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, CheckCircle, FileText, User, ShieldCheck, PlusCircle } from 'lucide-react';
+import { Check, FileText, User, ShieldCheck, PlusCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import type { ServicePack, IndividualService, VirtualChapelPlan, Proposal, ImagePlaceholder } from '@/lib/types';
 import { WhatsAppIcon } from '@/components/icons';
@@ -43,6 +43,81 @@ import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
+
+function ImageGalleryModal({
+  images,
+  initialIndex,
+  isOpen,
+  onOpenChange
+}: {
+  images: ImagePlaceholder[];
+  initialIndex: number | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [currentIndex, setCurrentIndex] = useState<number | null>(initialIndex);
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex, isOpen]);
+
+  if (currentIndex === null) return null;
+
+  const showNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex(prevIndex => (prevIndex! + 1) % images.length);
+  };
+
+  const showPrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentIndex(prevIndex => (prevIndex! - 1 + images.length) % images.length);
+  };
+
+  const currentImage = images[currentIndex];
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <DialogContent 
+            className="w-screen h-screen max-w-full max-h-full bg-black/95 border-none p-4 flex items-center justify-center group"
+            hideCloseButton={true}
+        >
+          <DialogHeader>
+            <DialogTitle className="sr-only">{currentImage?.description || 'Vista Ampliada de la Imagen'}</DialogTitle>
+          </DialogHeader>
+
+          {currentImage && (
+            <DialogClose asChild>
+                <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
+                    <Image
+                        key={currentImage.id}
+                        src={currentImage.imageUrl}
+                        alt={currentImage.description}
+                        fill
+                        className="object-contain"
+                    />
+                </div>
+            </DialogClose>
+          )}
+
+          <Button
+            variant="ghost"
+            className="absolute left-4 top-1/2 -translate-y-1/2 h-16 w-16 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+            onClick={showPrevImage}
+          >
+            <ChevronLeft className="h-10 w-10" />
+          </Button>
+          <Button
+            variant="ghost"
+            className="absolute right-4 top-1/2 -translate-y-1/2 h-16 w-16 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+            onClick={showNextImage}
+          >
+            <ChevronRight className="h-10 w-10" />
+          </Button>
+
+        </DialogContent>
+    </Dialog>
+  )
+}
 
 function ProposalPageSkeleton() {
     return (
@@ -98,8 +173,8 @@ function ProposalPageSkeleton() {
 
 
 export default function ProposalPage({ params: serverParams }: { params?: { id?: string } }) {
-  const params = useParams();
-  const proposalId = (params.id || serverParams?.id) as string;
+  const clientParams = useParams();
+  const proposalId = (clientParams.id || serverParams?.id) as string;
 
   const db = useFirestore();
   const { toast } = useToast();
@@ -110,7 +185,9 @@ export default function ProposalPage({ params: serverParams }: { params?: { id?:
   
   const [selectedServices, setSelectedServices] = useState<SelectableService[]>([]);
   const [isAccepted, setIsAccepted] = useState(proposal?.status === 'Propuesta Aceptada');
-  const [modalImage, setModalImage] = useState<ImagePlaceholder | null>(null);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [initialModalIndex, setInitialModalIndex] = useState<number | null>(null);
 
   const isLoading = loadingProposal || loadingPacks || loadingIndividual || loadingChapel;
 
@@ -150,6 +227,11 @@ export default function ProposalPage({ params: serverParams }: { params?: { id?:
       }
     });
   };
+
+  const openImageModal = (index: number) => {
+    setInitialModalIndex(index);
+    setIsModalOpen(true);
+  }
 
   const { totalAmount, mainPack } = useMemo(() => {
     const pack = selectedServices.find(s => 'idealFor' in s) as ServicePack | undefined;
@@ -208,6 +290,11 @@ export default function ProposalPage({ params: serverParams }: { params?: { id?:
     );
   }
   
+  const mainPackGalleryImages = (mainPack?.features ?? [])
+        .map(feature => PlaceHolderImages.find(p => p.id === feature.image))
+        .filter((img): img is ImagePlaceholder => !!img);
+
+
   if (isAccepted) {
     return (
         <div className="bg-gray-50 min-h-screen flex items-center justify-center p-4">
@@ -307,16 +394,19 @@ export default function ProposalPage({ params: serverParams }: { params?: { id?:
                                         className="w-full group"
                                     >
                                         <CarouselContent>
-                                            {mainPack.features.map((feature, index) => {
-                                                if (feature.hideImage) return null;
+                                            {(mainPack.features ?? []).map((feature, index) => {
                                                 const image = PlaceHolderImages.find(p => p.id === feature.image);
-                                                if (!image) return null;
+                                                if (!image || feature.hideImage) return null;
+                                                
+                                                const imageIndexInGallery = mainPackGalleryImages.findIndex(gi => gi.id === image.id);
+                                                if (imageIndexInGallery === -1) return null;
+
                                                 return (
                                                     <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
                                                         <div className="p-1">
                                                             <Card className='overflow-hidden'>
                                                                 <CardContent className="flex aspect-video items-center justify-center p-0 relative">
-                                                                    <button onClick={() => setModalImage(image)} className='w-full h-full'>
+                                                                    <button onClick={() => openImageModal(imageIndexInGallery)} className='w-full h-full'>
                                                                         <Image 
                                                                             src={image.imageUrl} 
                                                                             alt={feature.title} 
@@ -436,30 +526,13 @@ export default function ProposalPage({ params: serverParams }: { params?: { id?:
         </Card>
       </div>
     </div>
-    <Dialog open={!!modalImage} onOpenChange={(isOpen) => !isOpen && setModalImage(null)}>
-        <DialogContent 
-            className="w-screen h-screen max-w-full max-h-full bg-black/95 border-none p-4 flex items-center justify-center"
-            hideCloseButton={true}
-        >
-            <DialogHeader>
-                <DialogTitle className="sr-only">
-                    {modalImage?.description || 'Vista Ampliada de la Imagen'}
-                </DialogTitle>
-            </DialogHeader>
-            {modalImage && (
-                 <DialogClose asChild>
-                    <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
-                        <Image
-                            src={modalImage.imageUrl}
-                            alt={modalImage.description}
-                            fill
-                            className="object-contain"
-                        />
-                    </div>
-                 </DialogClose>
-            )}
-        </DialogContent>
-    </Dialog>
+    
+    <ImageGalleryModal
+      images={mainPackGalleryImages}
+      initialIndex={initialModalIndex}
+      isOpen={isModalOpen}
+      onOpenChange={setIsModalOpen}
+    />
     </>
   );
 }
