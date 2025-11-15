@@ -25,7 +25,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,7 +39,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import logo from '@/logo.png';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
 
@@ -428,6 +427,11 @@ export default function ProposalPage() {
     </div>
     <Dialog open={!!modalImage} onOpenChange={(isOpen) => !isOpen && setModalImage(null)}>
         <DialogContent className="image-modal-content bg-black/80 border-none">
+            <DialogHeader>
+                <DialogTitle className="sr-only">
+                    {modalImage?.description || 'Vista Ampliada de la Imagen'}
+                </DialogTitle>
+            </DialogHeader>
             {modalImage && (
                 <Image
                     src={modalImage.imageUrl}
