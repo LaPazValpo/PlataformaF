@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CheckCircle, FileText, User, ShieldCheck, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import type { ServicePack, IndividualService, VirtualChapelPlan, Proposal } from '@/lib/types';
+import type { ServicePack, IndividualService, VirtualChapelPlan, Proposal, ImagePlaceholder } from '@/lib/types';
 import { WhatsAppIcon } from '@/components/icons';
 import {
   AlertDialog,
@@ -40,6 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import logo from '@/logo.png';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
 
@@ -109,6 +110,7 @@ export default function ProposalPage() {
   
   const [selectedServices, setSelectedServices] = useState<SelectableService[]>([]);
   const [isAccepted, setIsAccepted] = useState(proposal?.status === 'Propuesta Aceptada');
+  const [modalImage, setModalImage] = useState<ImagePlaceholder | null>(null);
 
   const isLoading = loadingProposal || loadingPacks || loadingIndividual || loadingChapel;
 
@@ -238,6 +240,7 @@ export default function ProposalPage() {
   }
 
   return (
+    <>
     <div className="bg-gray-50 min-h-screen py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Card className="shadow-xl overflow-hidden">
@@ -313,14 +316,16 @@ export default function ProposalPage() {
                                                         <div className="p-1">
                                                             <Card className='overflow-hidden'>
                                                                 <CardContent className="flex aspect-video items-center justify-center p-0 relative">
-                                                                     <Image 
-                                                                        src={image.imageUrl} 
-                                                                        alt={feature.title} 
-                                                                        width={600} 
-                                                                        height={400} 
-                                                                        className="object-cover w-full h-full"
-                                                                        data-ai-hint={image.imageHint}
-                                                                    />
+                                                                    <button onClick={() => setModalImage(image)} className='w-full h-full'>
+                                                                        <Image 
+                                                                            src={image.imageUrl} 
+                                                                            alt={feature.title} 
+                                                                            width={600} 
+                                                                            height={400} 
+                                                                            className="object-cover w-full h-full"
+                                                                            data-ai-hint={image.imageHint}
+                                                                        />
+                                                                    </button>
                                                                     <div className="absolute inset-x-0 bottom-0 bg-black/50 text-white p-2 text-center">
                                                                         <p className="text-sm font-semibold">{feature.title}</p>
                                                                     </div>
@@ -421,5 +426,19 @@ export default function ProposalPage() {
         </Card>
       </div>
     </div>
+    <Dialog open={!!modalImage} onOpenChange={(isOpen) => !isOpen && setModalImage(null)}>
+        <DialogContent className="image-modal-content bg-black/80 border-none">
+            {modalImage && (
+                <Image
+                    src={modalImage.imageUrl}
+                    alt={modalImage.description}
+                    width={1920}
+                    height={1080}
+                    className="image-modal-image"
+                />
+            )}
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }

@@ -124,3 +124,12 @@ body {
     animation: slide-out-down 0.6s ease-out forwards;
   }
 }
+
+@layer components {
+    .image-modal-content {
+        @apply w-screen h-screen max-w-full max-h-full p-4 sm:p-6 md:p-8;
+    }
+    .image-modal-image {
+        @apply w-full h-full object-contain;
+    }
+}
