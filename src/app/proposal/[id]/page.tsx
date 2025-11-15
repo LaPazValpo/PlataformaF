@@ -97,9 +97,9 @@ function ProposalPageSkeleton() {
 }
 
 
-export default function ProposalPage({ params }: { params?: { id?: string } }) {
+export default function ProposalPage({ params: serverParams }: { params?: { id?: string } }) {
   const routerParams = useParams();
-  const proposalId = params?.id || routerParams.id as string;
+  const proposalId = serverParams?.id || routerParams.id as string;
 
   const db = useFirestore();
   const { toast } = useToast();
