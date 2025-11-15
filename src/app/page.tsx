@@ -39,6 +39,7 @@ import { useFirestore } from '@/firebase';
 import { addDoc, collection, writeBatch, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import ScrollAnimator from '@/components/common/ScrollAnimator';
 
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -203,39 +204,47 @@ export default function Home() {
         )}
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white">
-          <h1 className="font-headline text-4xl font-bold tracking-tight md:text-6xl pt-20">
-            Acompañamiento Digno y Respetuoso
-          </h1>
-          <p className="mt-4 max-w-2xl text-lg text-gray-200">
-            En La Paz de Cristo, ofrecemos un apoyo cálido y profesional para
-            honrar la memoria de sus seres queridos.
-          </p>
-          <div>
-            <ProspectModal triggerButton={
-              <Button className="mt-8" size="lg">Contáctenos</Button>
-            } />
-          </div>
+          <ScrollAnimator>
+            <h1 className="font-headline text-4xl font-bold tracking-tight md:text-6xl pt-20">
+              Acompañamiento Digno y Respetuoso
+            </h1>
+          </ScrollAnimator>
+          <ScrollAnimator style={{ animationDelay: '0.2s' }}>
+            <p className="mt-4 max-w-2xl text-lg text-gray-200">
+              En La Paz de Cristo, ofrecemos un apoyo cálido y profesional para
+              honrar la memoria de sus seres queridos.
+            </p>
+          </ScrollAnimator>
+          <ScrollAnimator style={{ animationDelay: '0.4s' }}>
+            <div>
+              <ProspectModal triggerButton={
+                <Button className="mt-8" size="lg">Contáctenos</Button>
+              } />
+            </div>
+          </ScrollAnimator>
         </div>
       </section>
 
       {/* SERVICIOS SECTION */}
       <section id="servicios" className="py-16 md:py-24" style={{ backgroundColor: 'hsl(240, 67%, 97%)' }}>
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-headline text-3xl font-bold md:text-4xl">
-              Servicios Pensados para Usted
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-             Ofrecemos servicios inmediatos y cremación. Para más detalles, planes de previsión y una atención personalizada, contáctenos.
-            </p>
-          </div>
+          <ScrollAnimator>
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">
+                Servicios Pensados para Usted
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+               Ofrecemos servicios inmediatos y cremación. Para más detalles, planes de previsión y una atención personalizada, contáctenos.
+              </p>
+            </div>
+          </ScrollAnimator>
           <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2">
-            {HOME_SERVICES.map((service) => {
+            {HOME_SERVICES.map((service, index) => {
               const Icon = iconMap[service.icon];
               return (
-                <div key={service.title}>
+                <ScrollAnimator key={service.title} style={{ animationDelay: `${index * 0.1}s` }}>
                   <Card
-                    className="flex flex-col overflow-hidden text-center"
+                    className="flex flex-col overflow-hidden text-center h-full"
                   >
                     <CardHeader className="flex flex-col items-center gap-4">
                       {Icon && (
@@ -253,34 +262,36 @@ export default function Home() {
                       </p>
                     </CardContent>
                   </Card>
-                </div>
+                </ScrollAnimator>
               );
             })}
           </div>
-           <div className="text-center mt-12">
+           <ScrollAnimator className="text-center mt-12">
                <Button asChild size="lg">
                   <Link href="/intranet/services">Ver Catálogo Completo</Link>
                </Button>
-            </div>
+            </ScrollAnimator>
         </div>
       </section>
 
       {/* TESTIMONIOS SECTION */}
       <section id="testimonios" className="bg-white py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-headline text-3xl font-bold md:text-4xl">
-              El Testimonio de Nuestras Familias
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              La confianza y la gratitud de las familias a las que hemos
-              servido es nuestro mayor orgullo.
-            </p>
-          </div>
+          <ScrollAnimator>
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">
+                El Testimonio de Nuestras Familias
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                La confianza y la gratitud de las familias a las que hemos
+                servido es nuestro mayor orgullo.
+              </p>
+            </div>
+          </ScrollAnimator>
           <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {TESTIMONIALS.map((testimonial) => (
-              <div key={testimonial.name}>
-                <Card className="flex flex-col">
+            {TESTIMONIALS.map((testimonial, index) => (
+              <ScrollAnimator key={testimonial.name} style={{ animationDelay: `${index * 0.1}s` }}>
+                <Card className="flex flex-col h-full">
                   <CardContent className="pt-6 flex-grow">
                     <div className="flex text-yellow-500 mb-2">
                         {[...Array(5)].map((_, i) => <Star key={i} className="h-5 w-5 fill-current" />)}
@@ -308,7 +319,7 @@ export default function Home() {
                     </div>
                   </CardFooter>
                 </Card>
-              </div>
+              </ScrollAnimator>
             ))}
           </div>
         </div>
@@ -317,48 +328,53 @@ export default function Home() {
       {/* BLOG SECTION */}
       <section id="blog" className="py-16 md:py-24" style={{ backgroundColor: 'hsl(240, 67%, 97%)' }}>
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="font-headline text-3xl font-bold md:text-4xl">
-              Guías y Recursos de Apoyo
-            </h2>
-            <p className="mt-4 text-lg text-muted-foreground">
-              Artículos para acompañarle y ofrecerle información útil en los
-              momentos de duelo.
-            </p>
-          </div>
+          <ScrollAnimator>
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-headline text-3xl font-bold md:text-4xl">
+                Guías y Recursos de Apoyo
+              </h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Artículos para acompañarle y ofrecerle información útil en los
+                momentos de duelo.
+              </p>
+            </div>
+          </ScrollAnimator>
           <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-             <Card
-                  className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
-                >
-                  <Link href="/blog">
-                    <div className="relative h-48 w-full">
-                      <Image
-                        src="https://picsum.photos/seed/blog1/600/400"
-                        alt="Blog post 1"
-                        data-ai-hint="grief support"
-                        width={600}
-                        height={400}
-                        className="object-cover"
-                      />
-                    </div>
-                  </Link>
-                  <CardHeader>
-                    <CardTitle className="font-headline text-xl">
-                      <Link href="/blog">Cómo Afrontar el Duelo: Una Guía para Tiempos Difíciles</Link>
-                    </CardTitle>
-                    <CardDescription>15 de Julio, 2024</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex-grow">
-                    <p className="text-muted-foreground">El duelo es un proceso personal y único. Aquí te ofrecemos algunos consejos para navegar estos momentos complicados y encontrar consuelo.</p>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="link" asChild className="p-0">
-                      <Link href="/blog">
-                        Leer más <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </CardFooter>
-                </Card>
+             <ScrollAnimator>
+               <Card
+                    className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
+                  >
+                    <Link href="/blog">
+                      <div className="relative h-48 w-full">
+                        <Image
+                          src="https://picsum.photos/seed/blog1/600/400"
+                          alt="Blog post 1"
+                          data-ai-hint="grief support"
+                          width={600}
+                          height={400}
+                          className="object-cover"
+                        />
+                      </div>
+                    </Link>
+                    <CardHeader>
+                      <CardTitle className="font-headline text-xl">
+                        <Link href="/blog">Cómo Afrontar el Duelo: Una Guía para Tiempos Difíciles</Link>
+                      </CardTitle>
+                      <CardDescription>15 de Julio, 2024</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <p className="text-muted-foreground">El duelo es un proceso personal y único. Aquí te ofrecemos algunos consejos para navegar estos momentos complicados y encontrar consuelo.</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Button variant="link" asChild className="p-0">
+                        <Link href="/blog">
+                          Leer más <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
+             </ScrollAnimator>
+             <ScrollAnimator style={{ animationDelay: '0.1s' }}>
                 <Card
                   className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
                 >
@@ -391,6 +407,8 @@ export default function Home() {
                     </Button>
                   </CardFooter>
                 </Card>
+             </ScrollAnimator>
+             <ScrollAnimator style={{ animationDelay: '0.2s' }}>
                 <Card
                   className="flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-lg"
                 >
@@ -423,12 +441,13 @@ export default function Home() {
                     </Button>
                   </CardFooter>
                 </Card>
+             </ScrollAnimator>
           </div>
-           <div className="text-center mt-12">
+           <ScrollAnimator className="text-center mt-12">
                 <Button asChild size="lg" variant="outline">
                     <Link href="/blog">Visitar Nuestro Blog</Link>
                 </Button>
-            </div>
+            </ScrollAnimator>
         </div>
       </section>
     </div>
