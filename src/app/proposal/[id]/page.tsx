@@ -356,7 +356,7 @@ export default function ProposalPage({ params }: { params?: { id?: string } }) {
                             </Card>
                         )}
                         
-                        <Accordion type="single" collapsible className="w-full" defaultValue='item-1'>
+                        <Accordion type="single" collapsible className="w-full">
                             <AccordionItem value="item-1">
                                 <AccordionTrigger className="text-lg font-semibold">
                                     <div className='flex items-center gap-2'>
