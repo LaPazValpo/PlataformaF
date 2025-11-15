@@ -12,7 +12,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import type { ServicePack, ServicePackFeature } from '@/lib/types';
 import { Switch } from '@/components/ui/switch';
-import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -128,7 +128,7 @@ export default function ServicePackForm({
                     {form.features.map((feature, index) => (
                         <div key={index} className="flex items-center gap-2">
                             <Input 
-                                placeholder="Título de la característica" 
+                                placeholder="Descripción de la característica" 
                                 value={feature.title}
                                 onChange={(e) => handleFeatureChange(index, 'title', e.target.value)}
                                 className="flex-grow"
