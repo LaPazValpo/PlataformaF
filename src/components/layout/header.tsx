@@ -19,7 +19,6 @@ import logo from '@/logo.png';
 const navLinks = [
   { href: '/', label: 'Inicio' },
   { href: '/blog', label: 'Blog' },
-  { href: '/#contacto', label: 'Contacto' },
 ];
 
 const Header = () => {
@@ -95,7 +94,6 @@ const Header = () => {
         {/* Desktop Navigation Left */}
         <nav className="hidden items-center space-x-6 md:flex">
           {navLinks.map((item, index) => {
-            if (index > 1) return null; // Only show Inicio and Blog
             return (
               <Link
                 key={item.href}
@@ -125,15 +123,6 @@ const Header = () => {
 
         {/* Desktop Navigation Right */}
         <nav className="hidden items-center space-x-6 md:flex">
-           <Link
-              href="/#contacto"
-              className={cn(
-                'text-sm font-medium text-muted-foreground transition-colors hover:text-primary',
-                pathname === "/#contacto" && 'text-primary'
-              )}
-            >
-              Contacto
-            </Link>
             <Button variant="outline" size="sm" asChild>
               <Link href="/login">
                 <Lock className="mr-2 h-4 w-4" /> Intranet
