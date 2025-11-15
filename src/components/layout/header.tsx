@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { Lock, Menu, ShieldAlert } from 'lucide-react';
+import { Lock, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -91,7 +91,7 @@ const Header = () => {
           </Sheet>
         </div>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation Left */}
         <nav className="hidden items-center space-x-6 md:flex">
           {navLinks.map((item, index) => {
             if (index > 1) return null; // Only show Inicio and Blog
@@ -111,19 +111,18 @@ const Header = () => {
         </nav>
 
         {/* Centered Logo */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform transition-all duration-300">
-           <Link href="/">
-                <Image
-                    src="/logo.png"
-                    alt="Paz Final Logo"
-                    width={140}
-                    height={46}
-                    className="object-contain"
-                    priority
-                  />
-          </Link>
-        </div>
+         <Link href="/">
+              <Image
+                  src="/logo.png"
+                  alt="Paz Final Logo"
+                  width={140}
+                  height={46}
+                  className="object-contain"
+                  priority
+                />
+        </Link>
 
+        {/* Desktop Navigation Right */}
         <nav className="hidden items-center space-x-6 md:flex">
           {navLinks.map((item, index) => {
              if (index < 2) return null; // Only show Contacto
