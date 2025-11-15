@@ -50,7 +50,7 @@ export default function ServicePackForm({
     const features = form.featuresText.split('\n').map(line => {
         const [title, image] = line.split('|');
         return { title: title?.trim() ?? '', image: image?.trim() ?? '', description: '' };
-    }).filter(f => f.title);
+    }).filter(f => f.title && f.image);
 
 
     const payload = {
@@ -108,10 +108,15 @@ export default function ServicePackForm({
           <Textarea value={form.description} onChange={(e) => handleChange('description', e.target.value)} />
         </div>
         <div className="col-span-2">
-          <Label>Características (una por línea, formato: Título|ID_Imagen)</Label>
-          <Textarea value={form.featuresText} onChange={(e) => handleChange('featuresText', e.target.value)} rows={8} />
+          <Label>Características del Carrusel (una por línea)</Label>
+          <Textarea 
+            value={form.featuresText} 
+            onChange={(e) => handleChange('featuresText', e.target.value)} 
+            rows={8} 
+            placeholder="Urna de pino fino|4"
+          />
           <p className="text-xs text-muted-foreground mt-1">
-            Ejemplo: Urna de pino fino|4
+            Formato: <b>Texto de la Característica|ID_de_la_Imagen</b>. El ID de la imagen proviene del archivo <b>placeholder-images.json</b>.
           </p>
         </div>
         <div className="flex items-center space-x-2">
