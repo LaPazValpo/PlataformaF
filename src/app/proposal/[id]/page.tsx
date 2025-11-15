@@ -40,7 +40,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import logo from '@/logo.png';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
 
@@ -97,9 +97,9 @@ function ProposalPageSkeleton() {
 }
 
 
-export default function ProposalPage() {
-  const params = useParams();
-  const proposalId = params.id as string;
+export default function ProposalPage({ params }: { params?: { id?: string } }) {
+  const routerParams = useParams();
+  const proposalId = params?.id || routerParams.id as string;
 
   const db = useFirestore();
   const { toast } = useToast();
@@ -427,20 +427,26 @@ export default function ProposalPage() {
       </div>
     </div>
     <Dialog open={!!modalImage} onOpenChange={(isOpen) => !isOpen && setModalImage(null)}>
-        <DialogContent className="image-modal-content bg-black/80 border-none">
+        <DialogContent 
+            className="w-screen h-screen max-w-full max-h-full bg-black/95 border-none p-4 flex items-center justify-center"
+            hideCloseButton={true}
+        >
             <DialogHeader>
                 <DialogTitle className="sr-only">
                     {modalImage?.description || 'Vista Ampliada de la Imagen'}
                 </DialogTitle>
             </DialogHeader>
             {modalImage && (
-                <Image
-                    src={modalImage.imageUrl}
-                    alt={modalImage.description}
-                    width={1920}
-                    height={1080}
-                    className="image-modal-image"
-                />
+                 <DialogClose asChild>
+                    <div className="relative w-full h-full max-w-7xl max-h-[90vh]">
+                        <Image
+                            src={modalImage.imageUrl}
+                            alt={modalImage.description}
+                            fill
+                            className="object-contain"
+                        />
+                    </div>
+                 </DialogClose>
             )}
         </DialogContent>
     </Dialog>
