@@ -305,6 +305,7 @@ export default function ProposalPage() {
                                     >
                                         <CarouselContent>
                                             {mainPack.features.map((feature, index) => {
+                                                if (feature.hideImage) return null;
                                                 const image = PlaceHolderImages.find(p => p.id === feature.image);
                                                 if (!image) return null;
                                                 return (

@@ -83,6 +83,7 @@ export interface ServicePackFeature {
   title: string;
   description: string;
   image: string;
+  hideImage?: boolean;
 }
 
 export interface ServicePack {

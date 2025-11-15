@@ -47,14 +47,14 @@ export default function ServicePackForm({
   const handleChange = (key: keyof ServicePackFormInput, value: any) =>
     setForm((p) => ({ ...p, [key]: value }));
 
-  const handleFeatureChange = (index: number, field: keyof ServicePackFeature, value: string) => {
+  const handleFeatureChange = (index: number, field: keyof ServicePackFeature, value: any) => {
       const newFeatures = [...form.features];
       newFeatures[index] = { ...newFeatures[index], [field]: value };
       handleChange('features', newFeatures);
   }
 
   const handleAddFeature = () => {
-      handleChange('features', [...form.features, { title: '', description: '', image: '' }]);
+      handleChange('features', [...form.features, { title: '', description: '', image: '', hideImage: false }]);
   }
 
   const handleRemoveFeature = (index: number) => {
@@ -145,6 +145,14 @@ export default function ServicePackForm({
                                     ))}
                                 </SelectContent>
                             </Select>
+                             <div className="flex items-center gap-1">
+                                <Switch
+                                    id={`hideImage-${index}`}
+                                    checked={!feature.hideImage}
+                                    onCheckedChange={(checked) => handleFeatureChange(index, 'hideImage', !checked)}
+                                />
+                                <Label htmlFor={`hideImage-${index}`} className="text-xs">Mostrar</Label>
+                            </div>
                             <Button variant="ghost" size="icon" onClick={() => handleRemoveFeature(index)}>
                                 <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
