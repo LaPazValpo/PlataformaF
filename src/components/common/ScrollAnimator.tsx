@@ -16,11 +16,7 @@ const ScrollAnimator: React.FC<ScrollAnimatorProps> = ({ children, className, st
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        } else {
-          setIsVisible(false);
-        }
+        setIsVisible(entry.isIntersecting);
       },
       {
         threshold: 0.1, // Trigger when 10% of the element is visible
@@ -44,7 +40,7 @@ const ScrollAnimator: React.FC<ScrollAnimatorProps> = ({ children, className, st
       ref={elementRef}
       className={cn(
         'scroll-animate',
-        isVisible ? 'scroll-animate-in' : '',
+        isVisible ? 'scroll-animate-in' : 'scroll-animate-out',
         className
       )}
       style={style}
