@@ -52,7 +52,7 @@ const navItems = [
 
 function PazFinalLogo() {
   return (
-    <div className="flex items-center gap-2.5 text-sidebar-foreground p-2">
+    <div className="flex items-center justify-center gap-2.5 text-sidebar-foreground p-2">
       <Image 
         src={logo} 
         alt="Paz Final Logo" 
