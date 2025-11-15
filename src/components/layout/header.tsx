@@ -43,7 +43,7 @@ const Header = () => {
     return null;
   }
   
-  const logoSizeClass = isScrolled ? 'h-20 w-auto' : 'h-28 w-auto';
+  const logoHeight = isScrolled ? 40 : 50;
 
   return (
     <header
@@ -114,11 +114,12 @@ const Header = () => {
 
         {/* Centered Logo */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform transition-all duration-300">
-           <Link href="/" className={cn('relative block', logoSizeClass)}>
+           <Link href="/">
                 <Image
                     src="/logo.png"
                     alt="Paz Final Logo"
-                    fill
+                    width={140}
+                    height={logoHeight}
                     className="object-contain"
                     priority
                   />
