@@ -118,8 +118,8 @@ const Header = () => {
           <Image
             src={logo}
             alt="Paz Final Logo"
-            width={245}
-            height={81}
+            width={319}
+            height={105}
             className="object-contain"
             priority
           />
