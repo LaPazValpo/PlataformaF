@@ -12,7 +12,7 @@ import {
   CardFooter
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, FileText, User, ShieldCheck, PlusCircle } from 'lucide-react';
+import { Check, CheckCircle, FileText, User, ShieldCheck, PlusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import type { ServicePack, IndividualService, VirtualChapelPlan, Proposal, ImagePlaceholder } from '@/lib/types';
 import { WhatsAppIcon } from '@/components/icons';
@@ -339,6 +339,21 @@ export default function ProposalPage({ params }: { params?: { id?: string } }) {
                                         <CarouselPrevious className="absolute left-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </Carousel>
+                                    <Accordion type="single" collapsible className="w-full mt-4">
+                                        <AccordionItem value="item-1">
+                                            <AccordionTrigger>Ver todos los servicios incluidos</AccordionTrigger>
+                                            <AccordionContent>
+                                                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 mt-2 text-sm">
+                                                    {mainPack.features.map(feature => (
+                                                        <li key={feature.title} className="flex items-center gap-2">
+                                                            <Check className="h-4 w-4 text-primary" />
+                                                            <span className="text-muted-foreground">{feature.title}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
                                 </CardContent>
                                  <CardFooter className="bg-slate-100 p-4 flex justify-end">
                                     <p className="text-lg font-bold text-slate-800">{mainPack.price}</p>
@@ -453,3 +468,4 @@ export default function ProposalPage({ params }: { params?: { id?: string } }) {
     </>
   );
 }
+
