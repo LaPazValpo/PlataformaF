@@ -113,7 +113,7 @@ const Header = () => {
         {/* Centered Logo */}
          <Link href="/">
               <Image
-                  src="/logo.png"
+                  src="/logop.png"
                   alt="Paz Final Logo"
                   width={140}
                   height={46}

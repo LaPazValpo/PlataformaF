@@ -140,7 +140,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-4">
           <Image 
-            src="/logo.png" 
+            src="/logop.png" 
             alt="Paz Final Logo"
             width={200}
             height={66}

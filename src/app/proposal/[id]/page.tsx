@@ -243,7 +243,7 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
         <Card className="shadow-xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-8 text-center">
                 <Image
-                    src="/logo.png"
+                    src="/logop.png"
                     alt="La Paz de Cristo Logo"
                     width={150}
                     height={50}

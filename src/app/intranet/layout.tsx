@@ -53,7 +53,7 @@ function PazFinalLogo() {
   return (
     <div className="flex items-center gap-2.5 text-sidebar-foreground p-2">
       <Image 
-        src="/logo.png" 
+        src="/logop.png" 
         alt="Paz Final Logo" 
         width={140} 
         height={46} 
