@@ -37,6 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { Skeleton } from '@/components/ui/skeleton';
+import logo from '@/logo.png';
 
 type SelectableService = ServicePack | IndividualService | VirtualChapelPlan;
 
@@ -243,7 +244,7 @@ function QuotationPage({ id: proposalIdFromProps }: { id?: string }) {
         <Card className="shadow-xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white p-8 text-center">
                 <Image
-                    src="/logop.png"
+                    src={logo}
                     alt="La Paz de Cristo Logo"
                     width={150}
                     height={50}

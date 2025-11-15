@@ -22,6 +22,7 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import logo from '@/logo.png';
 
 const loginFormSchema = z.object({
   email: z.string().email({ message: 'Por favor, introduce un email válido.' }),
@@ -140,7 +141,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center space-y-4">
           <Image 
-            src="/logop.png" 
+            src={logo} 
             alt="Paz Final Logo"
             width={200}
             height={66}

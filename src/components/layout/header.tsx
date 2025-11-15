@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
+import logo from '@/logo.png';
 
 const navLinks = [
   { href: '/', label: 'Inicio' },
@@ -113,7 +114,7 @@ const Header = () => {
         {/* Centered Logo */}
          <Link href="/">
               <Image
-                  src="/logop.png"
+                  src={logo}
                   alt="Paz Final Logo"
                   width={140}
                   height={46}

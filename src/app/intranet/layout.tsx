@@ -34,6 +34,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useUser, useAuth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
+import logo from '@/logo.png';
 
 const navItems = [
   { href: '/intranet/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -53,7 +54,7 @@ function PazFinalLogo() {
   return (
     <div className="flex items-center gap-2.5 text-sidebar-foreground p-2">
       <Image 
-        src="/logop.png" 
+        src={logo} 
         alt="Paz Final Logo" 
         width={140} 
         height={46} 
