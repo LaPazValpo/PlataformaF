@@ -161,6 +161,12 @@
       "description": "Arreglo floral sobre fondo",
       "imageUrl": "https://i.postimg.cc/J45xB8KD/arreglo-floral-fondo.png",
       "imageHint": "arreglo floral"
+    },
+    {
+      "id": "28",
+      "description": "Ataúd de madera barnizada",
+      "imageUrl": "https://i.postimg.cc/nrRL6CpK/ATAUD.png",
+      "imageHint": "ataud madera"
     }
   ]
 }
