@@ -173,6 +173,12 @@
       "description": "Minibús de traslado",
       "imageUrl": "https://i.postimg.cc/4327DLPY/minibus-fondo.png",
       "imageHint": "minibus"
+    },
+    {
+      "id": "30",
+      "description": "Capilla ardiente",
+      "imageUrl": "https://i.postimg.cc/d1MZBW9q/capilla-ardiente.png",
+      "imageHint": "capilla ardiente"
     }
   ]
 }
