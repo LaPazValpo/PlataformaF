@@ -167,6 +167,12 @@
       "description": "Ataúd de madera barnizada",
       "imageUrl": "https://i.postimg.cc/nrRL6CpK/ATAUD.png",
       "imageHint": "ataud madera"
+    },
+    {
+      "id": "29",
+      "description": "Minibús de traslado",
+      "imageUrl": "https://i.postimg.cc/4327DLPY/minibus-fondo.png",
+      "imageHint": "minibus"
     }
   ]
 }
