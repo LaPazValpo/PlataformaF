@@ -185,6 +185,12 @@
       "description": "Libro de condolencias",
       "imageUrl": "https://i.postimg.cc/tTjrZNwf/Libro-de-condolencias.png",
       "imageHint": "condolence book"
+    },
+    {
+      "id": "32",
+      "description": "Urna Intermezzo",
+      "imageUrl": "https://i.postimg.cc/pr3TcXwC/intermezzo-urna.png",
+      "imageHint": "wood urn"
     }
   ]
 }
