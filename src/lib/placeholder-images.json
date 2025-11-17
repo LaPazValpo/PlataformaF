@@ -39,7 +39,7 @@
     {
       "id": "7",
       "description": "Coffee and tea service for attendees.",
-      "imageUrl": "https://images.unsplash.com/photo-1648748005497-f372bfff66a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBzZXJ2aWNlfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1648748005497-f372bfff66a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBzZXJ2aWNlfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "coffee service"
     },
     {
@@ -179,6 +179,12 @@
       "description": "Capilla ardiente",
       "imageUrl": "https://i.postimg.cc/d1MZBW9q/capilla-ardiente.png",
       "imageHint": "capilla ardiente"
+    },
+    {
+      "id": "31",
+      "description": "Libro de condolencias",
+      "imageUrl": "https://i.postimg.cc/tTjrZNwf/Libro-de-condolencias.png",
+      "imageHint": "condolence book"
     }
   ]
 }
