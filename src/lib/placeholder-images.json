@@ -1,12 +1,6 @@
 {
   "placeholderImages": [
     {
-      "id": "1",
-      "description": "Ataud de madera",
-      "imageUrl": "https://i.postimg.cc/90LfDGpf/ATAUDF.jpg",
-      "imageHint": "ataud madera"
-    },
-    {
       "id": "2",
       "description": "Carroza funebre",
       "imageUrl": "https://i.postimg.cc/Y99rJ47V/carroza.png",
