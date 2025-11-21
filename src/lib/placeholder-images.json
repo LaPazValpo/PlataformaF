@@ -13,30 +13,6 @@
       "imageHint": "Carroza funebre"
     },
     {
-      "id": "3",
-      "description": "A physical book for condolences.",
-      "imageUrl": "https://images.unsplash.com/photo-1678830173562-6f4e9ce3ee79?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxndWVzdCUyMGJvb2t8ZW58MHx8fHwxNzYzMTM2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "guest book"
-    },
-    {
-      "id": "4",
-      "description": "Oak wood urn with carved details.",
-      "imageUrl": "https://images.unsplash.com/photo-1672545262639-241df6a8bc9a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxvYWslMjB1cm58ZW58MHx8fHwxNzYzMTM2ODUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "oak urn"
-    },
-    {
-      "id": "5",
-      "description": "Premium floral arrangement with select flowers.",
-      "imageUrl": "https://images.unsplash.com/photo-1617404442853-782e88a135e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcmVtaXVtJTIwZmxvd2Vyc3xlbnwwfHx8fDE3NjMxMzY4NTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "premium flowers"
-    },
-    {
-      "id": "6",
-      "description": "Premium condolence book with leather cover.",
-      "imageUrl": "https://images.unsplash.com/photo-1690507369594-b370f7d72868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsZWF0aGVyJTIwYm9va3xlbnwwfHx8fDE3NjMwNzg3Njd8MA&ixlib-rb-4.1.0&q=80&w=1080",
-      "imageHint": "leather book"
-    },
-    {
       "id": "7",
       "description": "Coffee and tea service for attendees.",
       "imageUrl": "https://images.unsplash.com/photo-1648748005497-f372bfff66a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBzZXJ2aWNlfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
