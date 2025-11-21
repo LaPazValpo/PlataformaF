@@ -33,13 +33,13 @@
     {
       "id": "6",
       "description": "Premium condolence book with leather cover.",
-      "imageUrl": "https://images.unsplash.com/photo-1690507369594-b370f7d72868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsZWF0aGVyJTIwYm9va3xlbnwwfHx8fDE3NjMwNzg3Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1690507369594-b370f7d72868?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsZWF0aGVyJTIwYm9va3xlbnwwfHx8fDE3NjMwNzg3Njd8MA&ixlib-rb-4.1.0&q=80&w=1080",
       "imageHint": "leather book"
     },
     {
       "id": "7",
       "description": "Coffee and tea service for attendees.",
-      "imageUrl": "https://images.unsplash.com/photo-1648748005497-f372bfff66a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBzZXJ2aWNlfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib-rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1648748005497-f372bfff66a9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2ZmZWUlMjBzZXJ2aWNlfGVufDB8fHx8MTc2MzEzNjg1MXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "coffee service"
     },
     {
@@ -191,6 +191,12 @@
       "description": "Urna Intermezzo",
       "imageUrl": "https://i.postimg.cc/pr3TcXwC/intermezzo-urna.png",
       "imageHint": "wood urn"
+    },
+    {
+      "id": "33",
+      "description": "Ataúd Premium de madera",
+      "imageUrl": "https://i.postimg.cc/3xM8fWyG/Ataud-Premium.png",
+      "imageHint": "premium coffin"
     }
   ]
 }
