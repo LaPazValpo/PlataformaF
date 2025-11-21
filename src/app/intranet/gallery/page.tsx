@@ -10,6 +10,17 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PlaceHolderImages, type ImagePlaceholder } from '@/lib/placeholder-images';
 import { Plus, Copy, Trash2, Pencil } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from '@/components/ui/alert-dialog';
 
 function GalleryImageForm({ image, onSave }: { image?: ImagePlaceholder; onSave: (data: ImagePlaceholder) => void }) {
     const [id, setId] = useState(image?.id || '');
@@ -125,9 +136,25 @@ export default function GalleryPage() {
                              <Button variant="outline" size="sm" className="w-full" onClick={() => openEditDialog(image)}>
                                 <Pencil className="mr-2 h-3 w-3" /> Editar
                             </Button>
-                            <Button variant="destructive" size="sm" className="w-full" onClick={() => handleAction('delete', image)}>
-                                <Trash2 className="mr-2 h-3 w-3" /> Eliminar
-                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm" className="w-full">
+                                        <Trash2 className="mr-2 h-3 w-3" /> Eliminar
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>¿Estás seguro de que quieres eliminar esta imagen?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Esta acción registrará los datos en la consola para que el asistente pueda eliminar la imagen de la galería. No se puede deshacer.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleAction('delete', image)}>Sí, eliminar</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </CardFooter>
                     </Card>
                 ))}
