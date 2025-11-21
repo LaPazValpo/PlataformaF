@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useCollection, useFirestore, useUser } from '@/firebase';
-import type { Prospect, Proposal, Sale, ServicePack, IndividualService, VirtualChapelPlan } from '@/lib/types';
+import type { Prospect, Proposal, Sale, ServicePack, IndividualService, VirtualChapelPlan, VirtualTomb } from '@/lib/types';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -128,18 +128,39 @@ export default function CloseSaleForm({
     };
     batch.set(saleRef, newSale);
 
+    // 3. Create a new empty virtual tomb
+    const tombId = `TOMB-${now.getTime()}`;
+    const tombRef = doc(db, 'virtualTombs', tombId);
+    const newTomb: VirtualTomb = {
+        id: tombId,
+        name: prospect.clientName,
+        birthDate: '',
+        passingDate: '',
+        mainImage: '',
+        gallery: [],
+        dedications: [],
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
+    };
+    batch.set(tombRef, newTomb);
+
+
     try {
         await batch.commit();
         toast({
             title: '¡Venta Cerrada con Éxito!',
-            description: `Se ha creado el registro de venta para ${prospect.clientName}.`
+            description: `Se ha creado el registro de venta y la capilla virtual para ${prospect.clientName}.`
         });
         onSuccess();
     } catch (serverError) {
         const permissionError = new FirestorePermissionError({
-            path: `prospects/${prospect.id} y sales/${saleId}`,
-            operation: 'update', // batch write
-            requestResourceData: { prospectUpdate: { status: 'Venta Ganada'}, saleCreate: newSale }
+            path: `prospects/${prospect.id}, sales/${saleId}, y virtualTombs/${tombId}`,
+            operation: 'write', // batch write
+            requestResourceData: { 
+                prospectUpdate: { status: 'Venta Ganada'}, 
+                saleCreate: newSale,
+                tombCreate: newTomb,
+            }
         });
         errorEmitter.emit('permission-error', permissionError);
         toast({
