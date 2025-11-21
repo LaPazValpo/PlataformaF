@@ -33,22 +33,15 @@ const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { hideCloseButton?: boolean }
 >(({ className, children, hideCloseButton, ...props }, ref) => {
-  let hasTitle = false;
-  React.Children.forEach(children, child => {
-    if (React.isValidElement(child) && (child.type === DialogHeader || child.type === DialogTitle)) {
-      const headerOrTitle = child as React.ReactElement<any>;
-      if (headerOrTitle.type === DialogTitle) {
-        hasTitle = true;
-      } else if (headerOrTitle.type === DialogHeader) {
-        React.Children.forEach(headerOrTitle.props.children, headerChild => {
-          if (React.isValidElement(headerChild) && headerChild.type === DialogTitle) {
-            hasTitle = true;
-          }
-        });
-      }
-    }
-  });
-
+  // Check if any child is a DialogTitle or a DialogHeader containing a DialogTitle
+  const hasTitle = React.Children.toArray(children).some(child => 
+    React.isValidElement(child) && (
+      child.type === DialogTitle || 
+      (child.type === DialogHeader && React.Children.toArray((child.props as any).children).some(headerChild =>
+        React.isValidElement(headerChild) && headerChild.type === DialogTitle
+      ))
+    )
+  );
 
   return (
     <DialogPortal>
