@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useCollection } from '@/firebase';
+import { useCollection, useUser } from '@/firebase';
 import type { VirtualTomb } from '@/lib/types';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { PageHeader } from '@/components/common/page-header';
@@ -19,8 +19,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
-import { Quote } from 'lucide-react';
+import { Quote, Edit } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import VirtualTombForm from '@/components/intranet/chapel/VirtualTombForm';
 
 function TombDialog({ tomb }: { tomb: VirtualTomb }) {
   if (!tomb) {
@@ -124,47 +125,87 @@ function ChapelSkeleton() {
 
 export default function ChapelPage() {
   const { data: virtualTombs, loading } = useCollection<VirtualTomb>('virtualTombs');
+  const { userProfile } = useUser();
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [selectedTomb, setSelectedTomb] = React.useState<VirtualTomb | null>(null);
+  const isAdmin = userProfile?.role === 'Administrador';
+
+  const handleEditClick = (tomb: VirtualTomb) => {
+    setSelectedTomb(tomb);
+    setIsFormOpen(true);
+  }
   
   if (loading) {
     return <ChapelSkeleton />;
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <PageHeader
-        title="Capilla Virtual"
-        description="Un espacio para recordar y honrar a nuestros seres queridos."
-      />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {virtualTombs.map(tomb => {
-          const image = PlaceHolderImages.find(p => p.id === tomb.mainImage);
-          return (
-            <Card key={tomb.id} className="overflow-hidden">
-              <CardContent className="p-0">
-                {image && (
-                  <Image
-                    src={image.imageUrl}
-                    alt={tomb.name}
-                    width={600}
-                    height={400}
-                    className="w-full h-48 object-cover"
-                    data-ai-hint={image.imageHint}
-                  />
+    <>
+      <div className="flex flex-col gap-8">
+        <PageHeader
+          title="Capilla Virtual"
+          description="Un espacio para recordar y honrar a nuestros seres queridos."
+        />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {virtualTombs.map(tomb => {
+            const image = PlaceHolderImages.find(p => p.id === tomb.mainImage);
+            return (
+              <Card key={tomb.id} className="overflow-hidden relative group">
+                {isAdmin && (
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    className="absolute top-2 right-2 z-10 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleEditClick(tomb)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 )}
-                <div className="p-4">
-                  <h3 className="font-bold text-lg">{tomb.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(tomb.birthDate), 'yyyy')} - {format(new Date(tomb.passingDate), 'yyyy')}
-                  </p>
-                  <div className="mt-4">
-                     <TombDialog tomb={tomb} />
+                <CardContent className="p-0">
+                  {image && (
+                    <Image
+                      src={image.imageUrl}
+                      alt={tomb.name}
+                      width={600}
+                      height={400}
+                      className="w-full h-48 object-cover"
+                      data-ai-hint={image.imageHint}
+                    />
+                  )}
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg">{tomb.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {format(new Date(tomb.birthDate), 'yyyy')} - {format(new Date(tomb.passingDate), 'yyyy')}
+                    </p>
+                    <div className="mt-4">
+                       <TombDialog tomb={tomb} />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
-    </div>
+      
+      {isAdmin && selectedTomb && (
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Editar Homenaje Virtual</DialogTitle>
+                </DialogHeader>
+                <VirtualTombForm 
+                    mode="edit"
+                    tombId={selectedTomb.id}
+                    initialData={selectedTomb}
+                    onSuccess={() => {
+                        setIsFormOpen(false);
+                        setSelectedTomb(null);
+                    }}
+                />
+            </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
