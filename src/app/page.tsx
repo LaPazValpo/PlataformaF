@@ -229,7 +229,7 @@ export default function Home() {
       <section id="servicios" className="py-16 md:py-24" style={{ backgroundColor: 'hsl(240, 67%, 97%)' }}>
         <div className="container mx-auto px-4">
           <ScrollAnimator>
-            <div className="mx-auto max-w-3xl text-center">
+            <div className="mx-auto max-w-3xl text-left">
               <h2 className="font-headline text-3xl font-bold md:text-4xl">
                 Servicios Pensados para Usted
               </h2>
@@ -267,9 +267,9 @@ export default function Home() {
             })}
           </div>
            <ScrollAnimator className="text-center mt-12">
-               <Button asChild size="lg">
-                  <Link href="/intranet/services">Ver Catálogo Completo</Link>
-               </Button>
+                <ProspectModal triggerButton={
+                  <Button size="lg">Ver Catálogo Completo</Button>
+                } />
             </ScrollAnimator>
         </div>
       </section>
