@@ -2,24 +2,10 @@
 
 import * as React from 'react';
 import {
-  ArrowUpDown,
-  ChevronDown,
-  MoreHorizontal,
   Trash2,
   Pencil,
+  MoreHorizontal
 } from 'lucide-react';
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table';
 
 import type { Client } from '@/lib/types';
 import { useCollection, useFirestore } from '@/firebase';
@@ -27,7 +13,6 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuItem,
@@ -136,44 +121,6 @@ function ClientActions({ client }: { client: Client }) {
   );
 }
 
-const columns: ColumnDef<Client>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Nombre',
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email',
-  },
-  {
-    accessorKey: 'phone',
-    header: 'Teléfono',
-  },
-  {
-    accessorKey: 'seller',
-    header: 'Vendedor Asignado',
-  },
-  {
-    accessorKey: 'date',
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-      >
-        Fecha de Ingreso
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => <div>{new Date(row.getValue('date')).toLocaleDateString()}</div>,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => <ClientActions client={row.original} />,
-  },
-];
-
-
 function ClientsPageSkeleton() {
     return (
         <div className="w-full">
@@ -183,7 +130,6 @@ function ClientsPageSkeleton() {
             />
             <div className="flex items-center py-4">
                 <Skeleton className="h-10 w-full max-w-sm" />
-                <Skeleton className="h-10 w-24 ml-auto" />
             </div>
             <div className="rounded-md border">
                 <Table>
@@ -211,24 +157,12 @@ function ClientsPageSkeleton() {
 
 export default function ClientsPage() {
   const { data: clients, loading } = useCollection<Client>('clients');
+  const [filter, setFilter] = React.useState('');
+
+  const filteredClients = React.useMemo(() => {
+    return clients.filter(client => client.name.toLowerCase().includes(filter.toLowerCase()));
+  }, [clients, filter]);
   
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-
-  const table = useReactTable({
-    data: clients,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    state: { sorting, columnFilters, columnVisibility },
-  });
-
   if (loading) {
     return <ClientsPageSkeleton />;
   }
@@ -242,66 +176,40 @@ export default function ClientsPage() {
       <div className="flex items-center py-4">
         <Input
           placeholder="Filtrar por nombre..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={event => table.getColumn('name')?.setFilterValue(event.target.value)}
+          value={filter}
+          onChange={event => setFilter(event.target.value)}
           className="max-w-sm"
         />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columnas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter(column => column.getCanHide())
-              .map(column => (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={value => column.toggleVisibility(!!value)}
-                >
-                  {column.id === 'name' ? 'Nombre' :
-                   column.id === 'email' ? 'Email' :
-                   column.id === 'phone' ? 'Teléfono' :
-                   column.id === 'seller' ? 'Vendedor' :
-                   column.id === 'date' ? 'Fecha de Ingreso' : column.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
+            <TableRow>
+                <TableHead>Nombre</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Teléfono</TableHead>
+                <TableHead>Vendedor Asignado</TableHead>
+                <TableHead>Fecha de Ingreso</TableHead>
+                <TableHead><span className="sr-only">Acciones</span></TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+            {filteredClients.length > 0 ? (
+              filteredClients.map(client => (
+                <TableRow key={client.id}>
+                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell>{client.email}</TableCell>
+                  <TableCell>{client.phone}</TableCell>
+                  <TableCell>{client.seller}</TableCell>
+                  <TableCell>{new Date(client.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="text-right">
+                    <ClientActions client={client} />
+                  </TableCell>
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center">
                   Sin resultados.
                 </TableCell>
               </TableRow>
