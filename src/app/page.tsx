@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection, writeBatch, doc } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import ScrollAnimator from '@/components/common/ScrollAnimator';
@@ -84,28 +84,9 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
             updatedAt: now,
         };
 
-        const newClient = {
-            name: clientName,
-            email,
-            phone: contactNumber,
-            seller: 'Sin Asignar',
-            date: now,
-            createdAt: now,
-            updatedAt: now,
-        };
-
         try {
-            const batch = writeBatch(db);
-            
             const prospectsCol = collection(db, 'prospects');
-            const prospectRef = doc(prospectsCol);
-            batch.set(prospectRef, newProspect);
-
-            const clientsCol = collection(db, 'clients');
-            const clientRef = doc(clientsCol);
-            batch.set(clientRef, newClient);
-
-            await batch.commit();
+            await addDoc(prospectsCol, newProspect);
             
             toast({
                 title: 'Solicitud Recibida con Éxito',
@@ -115,11 +96,11 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
             resetForm();
 
         } catch (serverError) {
-             console.error("Error creating prospect and client:", serverError);
+             console.error("Error creating prospect:", serverError);
              const permissionError = new FirestorePermissionError({
-                path: 'prospects or clients',
+                path: 'prospects',
                 operation: 'create',
-                requestResourceData: { newProspect, newClient },
+                requestResourceData: newProspect,
              });
              errorEmitter.emit('permission-error', permissionError);
              toast({
