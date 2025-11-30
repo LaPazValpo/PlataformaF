@@ -6,6 +6,8 @@ import { PropsWithChildren, useEffect, useState } from 'react';
 
 import { FirebaseProvider, initializeFirebase } from '.';
 
+// Este archivo se ha modificado para forzar la detección de cambios en Git.
+
 export default function FirebaseClientProvider({
   children,
 }: PropsWithChildren) {
@@ -16,12 +18,14 @@ export default function FirebaseClientProvider({
   } | null>(null);
 
   useEffect(() => {
+    // Inicializa Firebase en el lado del cliente
     const { app, auth, firestore } = initializeFirebase();
     setFirebase({ app, auth, firestore });
   }, []);
 
   if (!firebase) {
-    return null;
+    // Muestra un loader o null mientras Firebase se inicializa.
+    return null; 
   }
 
   return (
