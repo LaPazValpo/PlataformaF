@@ -50,7 +50,8 @@ service cloud.firestore {
     }
     
     match /proposals/{proposalId} {
-      allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
+      allow read: if true;
+      allow write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
     match /sales/{saleId} {
