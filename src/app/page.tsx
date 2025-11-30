@@ -36,7 +36,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, writeBatch, doc } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import ScrollAnimator from '@/components/common/ScrollAnimator';
@@ -70,7 +70,8 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
 
         setIsLoading(true);
 
-        const now = new Date().toISOString();
+        const now = new Date();
+        const timestamp = now.toISOString();
 
         const newProspect = {
             clientName,
@@ -78,16 +79,35 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
             email,
             sellerId: null,
             sellerName: 'Sin Asignar',
-            date: now,
-            status: 'Nuevo',
-            createdAt: now,
-            updatedAt: now,
+            date: timestamp,
+            status: 'Nuevo' as const,
+            createdAt: timestamp,
+            updatedAt: timestamp,
         };
 
+        const newClient = {
+            name: clientName,
+            email,
+            phone: contactNumber,
+            seller: 'Sin Asignar',
+            date: timestamp,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+        }
+
         try {
+            const batch = writeBatch(db);
+
             const prospectsCol = collection(db, 'prospects');
-            await addDoc(prospectsCol, newProspect);
+            const prospectRef = doc(prospectsCol);
+            batch.set(prospectRef, newProspect);
+
+            const clientsCol = collection(db, 'clients');
+            const clientRef = doc(clientsCol);
+            batch.set(clientRef, newClient);
             
+            await batch.commit();
+
             toast({
                 title: 'Solicitud Recibida con Éxito',
                 description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
@@ -96,11 +116,11 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
             resetForm();
 
         } catch (serverError) {
-             console.error("Error creating prospect:", serverError);
+             console.error("Error creating prospect and client:", serverError);
              const permissionError = new FirestorePermissionError({
-                path: 'prospects',
+                path: 'prospects y clients (batch)',
                 operation: 'create',
-                requestResourceData: newProspect,
+                requestResourceData: { newProspect, newClient },
              });
              errorEmitter.emit('permission-error', permissionError);
              toast({

@@ -52,7 +52,9 @@ service cloud.firestore {
     }
     
     match /clients/{clientId} {
-      allow create: if true;
+      // CUALQUIERA puede crear un nuevo registro de cliente (desde el formulario público).
+      allow create: if true; 
+      // PERO solo el personal autenticado puede leer, actualizar o borrar clientes.
       allow read, write: if isOneOfRoles(['Administrador', 'Vendedor', 'Vendedor Senior']);
     }
     
