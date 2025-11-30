@@ -7,14 +7,8 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, XCircle, Eye, MessageCircle, Trash2, Info } from 'lucide-react';
+import { Hand, Mail, Phone, FileText, CheckCircle, Eye, MessageCircle, Trash2, Info } from 'lucide-react';
 import { doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -530,3 +524,5 @@ export default function SalesPage() {
     </div>
   );
 }
+
+    
