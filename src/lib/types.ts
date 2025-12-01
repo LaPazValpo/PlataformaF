@@ -73,8 +73,6 @@ export interface Seller {
   conversionRate: number;
   avatar: string;
   role: 'Vendedor' | 'Vendedor Senior' | 'Administrador';
-  user: string;
-  pass: string;
   createdAt: string;
   updatedAt: string;
 }

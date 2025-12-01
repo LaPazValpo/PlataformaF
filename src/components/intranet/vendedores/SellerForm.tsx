@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 type FormMode = 'create' | 'edit';
 
-type SellerFormInput = Omit<Seller, 'id' | 'createdAt' | 'updatedAt' | 'avatar' | 'sales' | 'conversionRate' | 'pass' | 'user'>;
+type SellerFormInput = Omit<Seller, 'id' | 'createdAt' | 'updatedAt' | 'avatar' | 'sales' | 'conversionRate'>;
 
 export default function SellerForm({
   mode,
@@ -60,8 +60,6 @@ export default function SellerForm({
                 sales: 0,
                 conversionRate: 0,
                 avatar: '',
-                user: '', // These should be handled by a more secure auth flow
-                pass: '', // These should be handled by a more secure auth flow
                 createdAt: now,
                 updatedAt: now,
             };
