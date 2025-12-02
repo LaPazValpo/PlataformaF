@@ -65,7 +65,7 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
         setEmail('');
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = () => {
         if (!clientName || !contactNumber || !db) return;
 
         setIsLoading(true);
@@ -95,42 +95,41 @@ const ProspectModal = ({ triggerButton }: { triggerButton: React.ReactNode }) =>
             updatedAt: timestamp,
         }
 
-        try {
-            const batch = writeBatch(db);
+        const batch = writeBatch(db);
 
-            const prospectsCol = collection(db, 'prospects');
-            const prospectRef = doc(prospectsCol);
-            batch.set(prospectRef, newProspect);
+        const prospectsCol = collection(db, 'prospects');
+        const prospectRef = doc(prospectsCol);
+        batch.set(prospectRef, newProspect);
 
-            const clientsCol = collection(db, 'clients');
-            const clientRef = doc(clientsCol);
-            batch.set(clientRef, newClient);
-            
-            await batch.commit();
-
-            toast({
-                title: 'Solicitud Recibida con Éxito',
-                description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
+        const clientsCol = collection(db, 'clients');
+        const clientRef = doc(clientsCol);
+        batch.set(clientRef, newClient);
+        
+        batch.commit()
+            .then(() => {
+                toast({
+                    title: 'Solicitud Recibida con Éxito',
+                    description: `Gracias, ${clientName}. Un asesor se pondrá en contacto con usted a la brevedad.`,
+                });
+                setIsOpen(false);
+                resetForm();
+            })
+            .catch((serverError) => {
+                 const permissionError = new FirestorePermissionError({
+                    path: 'prospects y clients (batch write)',
+                    operation: 'create',
+                    requestResourceData: { newProspect, newClient },
+                 });
+                 errorEmitter.emit('permission-error', permissionError);
+                 toast({
+                    variant: 'destructive',
+                    title: 'Error al enviar la solicitud',
+                    description: 'Hubo un problema al registrar su información. Por favor, intente más tarde.',
+                 });
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
-            setIsOpen(false);
-            resetForm();
-
-        } catch (serverError) {
-             console.error("Error creating prospect and client:", serverError);
-             const permissionError = new FirestorePermissionError({
-                path: 'prospects y clients (batch)',
-                operation: 'create',
-                requestResourceData: { newProspect, newClient },
-             });
-             errorEmitter.emit('permission-error', permissionError);
-             toast({
-                variant: 'destructive',
-                title: 'Error al enviar la solicitud',
-                description: 'Hubo un problema al registrar su información. Por favor, intente más tarde.',
-             });
-        } finally {
-            setIsLoading(false);
-        }
     }
 
     return (

@@ -43,6 +43,35 @@ export default function LoginPage() {
     },
   });
 
+  const handleAdminRole = (user: any) => {
+    const userRef = doc(db, 'users', user.uid);
+    const adminData = {
+        role: 'Administrador',
+        email: user.email,
+        name: 'Admin Principal',
+        id: user.uid,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+    };
+
+    // Intenta crear el documento. Si falla porque ya existe, intenta actualizarlo.
+    // Esto es más seguro que `update` primero si el documento podría no existir.
+    setDoc(userRef, adminData, { merge: true })
+        .catch((error) => {
+            const permissionError = new FirestorePermissionError({
+                path: userRef.path,
+                operation: 'update',
+                requestResourceData: { role: 'Administrador' },
+             });
+             errorEmitter.emit('permission-error', permissionError);
+             toast({
+                variant: 'destructive',
+                title: 'Error de permisos',
+                description: 'No se pudo asignar el rol de administrador.',
+             });
+        });
+  };
+
   const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
     if (!auth || !db) {
         toast({
@@ -57,34 +86,8 @@ export default function LoginPage() {
       const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // Asignar rol de Administrador si es el superusuario
       if (values.email === 'lapazdecristovalpo@gmail.com') {
-        const userRef = doc(db, 'users', user.uid);
-        
-        try {
-          // Primero, intenta actualizar el rol. Esto es eficiente si el documento ya existe.
-          await updateDoc(userRef, {
-             role: 'Administrador',
-             updatedAt: new Date().toISOString() 
-          });
-        } catch (error: any) {
-          // Si el documento no existe ('not-found'), lo creamos.
-          if (error.code === 'not-found') {
-            const adminData = {
-              role: 'Administrador',
-              email: user.email,
-              name: 'Admin Principal',
-              id: user.uid,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            };
-            // Usamos setDoc para crear el documento por primera vez.
-            await setDoc(userRef, adminData);
-          } else {
-            // Si es otro tipo de error (ej. de permisos), lo lanzamos para que sea capturado por el catch principal.
-            throw error;
-          }
-        }
+        handleAdminRole(user);
       }
 
       toast({
@@ -96,19 +99,8 @@ export default function LoginPage() {
     } catch (error: any) {
       console.error("Login Error:", error);
       let description = 'Ocurrió un error inesperado.';
-
-      // Manejo de errores de Firestore (permisos al intentar asignar rol)
-      if (error instanceof FirestorePermissionError || error.name === 'FirestorePermissionError' || (error.code && error.code.startsWith('permission-denied'))) {
-         description = "No se pudo asignar el rol de administrador. Revisa las reglas de seguridad de la colección 'users'.";
-         const permissionError = new FirestorePermissionError({
-            path: `users/${auth.currentUser?.uid}`,
-            operation: 'update', // o 'create'
-            requestResourceData: { role: 'Administrador' },
-         });
-         errorEmitter.emit('permission-error', permissionError);
-      }
-      // Manejo de errores de Auth
-      else if (error.code) {
+      
+      if (error.code) {
         switch (error.code) {
           case 'auth/user-not-found':
           case 'auth/wrong-password':

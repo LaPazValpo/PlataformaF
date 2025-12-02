@@ -86,7 +86,7 @@ function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: 
       handleUpdateProspect('Contactado', user.uid, userProfile.name);
   }
 
-  const handleDeleteProspect = async () => {
+  const handleDeleteProspect = () => {
       if (!db) return;
       
       setIsUpdating(true);
@@ -328,30 +328,32 @@ export default function SalesPage() {
     setIsPublicViewOpen(true);
   }
 
-  const handleDeleteProposal = async (proposalId: string) => {
+  const handleDeleteProposal = (proposalId: string) => {
     if (!db) return;
     const proposalRef = doc(db, 'proposals', proposalId);
-    try {
-      await deleteDoc(proposalRef);
-      toast({ title: 'Propuesta eliminada' });
-    } catch (e) {
-      const permissionError = new FirestorePermissionError({ path: proposalRef.path, operation: 'delete' });
-      errorEmitter.emit('permission-error', permissionError);
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos.' });
-    }
+    deleteDoc(proposalRef)
+      .then(() => {
+        toast({ title: 'Propuesta eliminada' });
+      })
+      .catch((e) => {
+        const permissionError = new FirestorePermissionError({ path: proposalRef.path, operation: 'delete' });
+        errorEmitter.emit('permission-error', permissionError);
+        toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
+      });
   };
 
-  const handleDeleteSale = async (saleId: string) => {
+  const handleDeleteSale = (saleId: string) => {
     if (!db) return;
     const saleRef = doc(db, 'sales', saleId);
-    try {
-      await deleteDoc(saleRef);
-      toast({ title: 'Venta eliminada' });
-    } catch (e) {
-      const permissionError = new FirestorePermissionError({ path: saleRef.path, operation: 'delete' });
-      errorEmitter.emit('permission-error', permissionError);
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos.' });
-    }
+    deleteDoc(saleRef)
+      .then(() => {
+        toast({ title: 'Venta eliminada' });
+      })
+      .catch((e) => {
+        const permissionError = new FirestorePermissionError({ path: saleRef.path, operation: 'delete' });
+        errorEmitter.emit('permission-error', permissionError);
+        toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
+      });
   };
   
   return (

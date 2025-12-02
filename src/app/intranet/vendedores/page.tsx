@@ -75,18 +75,19 @@ function SellerProfileModal({ seller, children }: { seller: SellerPerformance, c
         { icon: TrendingUp, label: "Comisión Total Ganada", value: formatCurrency(seller.commissionEarned) },
     ]
 
-    const handleDeleteSeller = async () => {
+    const handleDeleteSeller = () => {
         if (!db || !isAdmin) return;
         const sellerRef = doc(db, 'sellers', seller.id);
-        try {
-            await deleteDoc(sellerRef);
-            toast({ title: 'Vendedor eliminado con éxito' });
-            setIsProfileOpen(false); // Cierra el modal principal
-        } catch (e) {
-             const permissionError = new FirestorePermissionError({ path: sellerRef.path, operation: 'delete' });
-             errorEmitter.emit('permission-error', permissionError);
-             toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
-        }
+        deleteDoc(sellerRef)
+            .then(() => {
+                toast({ title: 'Vendedor eliminado con éxito' });
+                setIsProfileOpen(false); // Cierra el modal principal
+            })
+            .catch((e) => {
+                 const permissionError = new FirestorePermissionError({ path: sellerRef.path, operation: 'delete' });
+                 errorEmitter.emit('permission-error', permissionError);
+                 toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
+            });
     };
 
     return (

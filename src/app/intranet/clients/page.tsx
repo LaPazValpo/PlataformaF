@@ -52,17 +52,18 @@ function ClientActions({ client }: { client: Client }) {
   const db = useFirestore();
   const { toast } = useToast();
 
-  const handleDeleteClient = async () => {
+  const handleDeleteClient = () => {
     if (!db) return;
     const clientRef = doc(db, 'clients', client.id);
-    try {
-      await deleteDoc(clientRef);
-      toast({ title: 'Cliente eliminado' });
-    } catch (e) {
-      const permissionError = new FirestorePermissionError({ path: clientRef.path, operation: 'delete' });
-      errorEmitter.emit('permission-error', permissionError);
-      toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos.' });
-    }
+    deleteDoc(clientRef)
+        .then(() => {
+            toast({ title: 'Cliente eliminado' });
+        })
+        .catch((e) => {
+            const permissionError = new FirestorePermissionError({ path: clientRef.path, operation: 'delete' });
+            errorEmitter.emit('permission-error', permissionError);
+            toast({ variant: 'destructive', title: 'Error al eliminar', description: 'No tienes permisos para realizar esta acción.' });
+        });
   };
 
   return (
