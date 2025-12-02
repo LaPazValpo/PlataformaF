@@ -31,10 +31,10 @@ const Footer = () => {
               <li className="flex items-center justify-center md:justify-start">
                 <Mail className="h-4 w-4" />
                 <a
-                  href="mailto:contacto@lapazdecristo.com"
+                  href="mailto:lapazdecristovalpo@gmail.com"
                   className="ml-2 text-muted-foreground hover:text-primary"
                 >
-                  contacto@lapazdecristo.com
+                  lapazdecristovalpo@gmail.com
                 </a>
               </li>
               <li className="flex items-start justify-center md:justify-start">
