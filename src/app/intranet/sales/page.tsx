@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Hand, Mail, Phone, FileText, CheckCircle, Eye, MessageCircle, Trash2, Info } from 'lucide-react';
+import { Hand, Mail, Phone, FileText, CheckCircle, Eye, MessageCircle, Trash2, Info, Edit } from 'lucide-react';
 import { doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import ProposalPage from '@/app/proposal/[id]/page';
 import CloseSaleForm from '@/components/intranet/sales/CloseSaleForm';
+import EditProposalForm from '@/components/intranet/proposals/EditProposalForm';
 
 
 function ProspectCard({ prospect, proposals }: { prospect: Prospect, proposals: Proposal[] }) {
@@ -290,6 +291,7 @@ export default function SalesPage() {
   
   const [isDetailsOpen, setIsDetailsOpen] = React.useState(false);
   const [isPublicViewOpen, setIsPublicViewOpen] = React.useState(false);
+  const [isEditProposalOpen, setIsEditProposalOpen] = React.useState(false);
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | null>(null);
 
   const loading = loadingProspects || loadingProposals || loadingSales;
@@ -327,6 +329,11 @@ export default function SalesPage() {
     setSelectedProposal(proposal);
     setIsPublicViewOpen(true);
   }
+
+  const handleOpenEditProposal = (proposal: Proposal) => {
+    setSelectedProposal(proposal);
+    setIsEditProposalOpen(true);
+  };
 
   const handleDeleteProposal = (proposalId: string) => {
     if (!db) return;
@@ -413,6 +420,9 @@ export default function SalesPage() {
                                         </Button>
                                          <Button variant="ghost" size="icon" onClick={() => handleOpenDetails(p)} title="Ver Detalles Internos">
                                             <Info className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenEditProposal(p)} title="Editar Propuesta">
+                                            <Edit className="h-4 w-4" />
                                         </Button>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
@@ -521,6 +531,20 @@ export default function SalesPage() {
                          <ProposalPage params={{ id: selectedProposal.id }} />
                     </div>
                  )}
+            </DialogContent>
+        </Dialog>
+        
+       <Dialog open={isEditProposalOpen} onOpenChange={setIsEditProposalOpen}>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Editar Propuesta para {selectedProposal?.clientName}</DialogTitle>
+                </DialogHeader>
+                {selectedProposal && (
+                    <EditProposalForm
+                        proposal={selectedProposal}
+                        onSuccess={() => setIsEditProposalOpen(false)}
+                    />
+                )}
             </DialogContent>
         </Dialog>
     </div>
